@@ -4,9 +4,9 @@ import com.badlogic.ashley.core.Component;
 
 public class VelocityComponent implements Component {
 
-    private float x;
+    public float x;
 
-    private float y;
+    public float y;
 
     public float getX() {
         return x;
