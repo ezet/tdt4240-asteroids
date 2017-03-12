@@ -1,4 +1,4 @@
-package no.ntnu.tdt4240.asteroids.component.system;
+package no.ntnu.tdt4240.asteroids.entity.system;
 
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
@@ -8,8 +8,8 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.sun.istack.internal.Nullable;
 
-import no.ntnu.tdt4240.asteroids.component.PositionComponent;
-import no.ntnu.tdt4240.asteroids.component.VelocityComponent;
+import no.ntnu.tdt4240.asteroids.entity.component.PositionComponent;
+import no.ntnu.tdt4240.asteroids.entity.component.VelocityComponent;
 
 import static com.badlogic.gdx.Gdx.app;
 
