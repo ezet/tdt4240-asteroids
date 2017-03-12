@@ -1,49 +1,32 @@
 package no.ntnu.tdt4240.asteroids.entity.system;
 
-import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.sun.istack.internal.Nullable;
 
 import no.ntnu.tdt4240.asteroids.entity.component.PositionComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.VelocityComponent;
 
-import static com.badlogic.gdx.Gdx.app;
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.positionMapper;
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.velocityMapper;
 
 
-public class MovementSystem extends EntitySystem {
+public class MovementSystem extends IteratingSystem {
 
     private static final String TAG = MovementSystem.class.getSimpleName();
 
     private ImmutableArray<Entity> entities;
 
     public MovementSystem() {
+        super(Family.all(PositionComponent.class, VelocityComponent.class).get());
     }
 
     @Override
-    public void addedToEngine(@Nullable Engine engine) {
-        if (engine == null) {
-            app.error(TAG, "addedToEngine: Engine is null");
-            return;
-        }
-        @SuppressWarnings("unchecked")
-        Family family = Family.all(PositionComponent.class, VelocityComponent.class).get();
-        entities = engine.getEntitiesFor(family);
-    }
-
-    @Override
-    public void update(float deltaTime) {
-        for (Entity entity : entities) {
-            PositionComponent position = positionMapper.get(entity);
-            VelocityComponent velocity = velocityMapper.get(entity);
-
-            position.x = velocity.x * deltaTime;
-            position.y = velocity.y * deltaTime;
-
-        }
+    protected void processEntity(Entity entity, float deltaTime) {
+        PositionComponent position = positionMapper.get(entity);
+        VelocityComponent velocity = velocityMapper.get(entity);
+        position.x = velocity.x * deltaTime;
+        position.y = velocity.y * deltaTime;
     }
 }
