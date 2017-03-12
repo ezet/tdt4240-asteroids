@@ -1,6 +1,5 @@
 package no.ntnu.tdt4240.asteroids.entity.system;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
@@ -12,6 +11,8 @@ import no.ntnu.tdt4240.asteroids.entity.component.PositionComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.VelocityComponent;
 
 import static com.badlogic.gdx.Gdx.app;
+import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.positionMapper;
+import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.velocityMapper;
 
 
 public class MovementSystem extends EntitySystem {
@@ -19,8 +20,6 @@ public class MovementSystem extends EntitySystem {
     private static final String TAG = MovementSystem.class.getSimpleName();
 
     private ImmutableArray<Entity> entities;
-    private ComponentMapper<PositionComponent> positionMapper = ComponentMapper.getFor(PositionComponent.class);
-    private ComponentMapper<VelocityComponent> velocityMapper = ComponentMapper.getFor(VelocityComponent.class);
 
     public MovementSystem() {
     }
