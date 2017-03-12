@@ -8,4 +8,8 @@ public class PositionComponent implements Component {
 
     public float y;
 
+    public PositionComponent(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
 }
