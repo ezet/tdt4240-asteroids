@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import no.ntnu.tdt4240.asteroids.entity.component.DrawableComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.PositionComponent;
+import no.ntnu.tdt4240.asteroids.entity.component.VelocityComponent;
 import no.ntnu.tdt4240.asteroids.entity.system.MovementSystem;
 import no.ntnu.tdt4240.asteroids.entity.system.RenderSystem;
 
@@ -29,8 +30,8 @@ public class Asteroids extends ApplicationAdapter {
 
         Entity player = engine.createEntity();
         player.add(new PositionComponent(50, 50));
+        player.add(new VelocityComponent(5, 5));
         player.add(new DrawableComponent(new TextureRegion(texture)));
-
         engine.addEntity(player);
     }
 

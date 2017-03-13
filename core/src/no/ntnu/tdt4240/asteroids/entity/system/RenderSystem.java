@@ -28,8 +28,8 @@ public class RenderSystem extends IteratingSystem {
     public void update(float deltaTime) {
         camera.update();
         batch.begin();
-        batch.setProjectionMatrix(camera.combined);
         super.update(deltaTime);
+        batch.setProjectionMatrix(camera.combined);
         batch.end();
     }
 
@@ -37,6 +37,6 @@ public class RenderSystem extends IteratingSystem {
     protected void processEntity(Entity entity, float deltaTime) {
         PositionComponent position = positionMapper.get(entity);
         DrawableComponent drawable = drawableMapper.get(entity);
-        batch.draw(drawable.region, position.x, position.y);
+        batch.draw(drawable.getRegion(), position.getX(), position.getY());
     }
 }
