@@ -16,6 +16,7 @@ import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import no.ntnu.tdt4240.asteroids.entity.InputHandler;
 import no.ntnu.tdt4240.asteroids.entity.component.DrawableComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.PositionComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.VelocityComponent;
@@ -24,12 +25,15 @@ import no.ntnu.tdt4240.asteroids.entity.system.RenderSystem;
 
 public class GameScreen extends ScreenAdapter {
 
+    private static final String TAG = GameScreen.class.getSimpleName();
+
     private final Asteroids game;
     private final Camera guiCam;
     private final SpriteBatch batch;
     private final Stage guiStage;
     private final PooledEngine engine;
     private boolean running;
+    private Entity player;
 
     public GameScreen(Asteroids game) {
         this.game = game;
@@ -41,11 +45,11 @@ public class GameScreen extends ScreenAdapter {
         Viewport guiViewport = new ScalingViewport(Scaling.stretch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         guiStage = new Stage(guiViewport, batch);
 
-        initTouchpad(guiStage);
 
         engine = new PooledEngine();
         initEngine(engine, batch);
 
+        initTouchpad(guiStage);
         running = true;
     }
 
@@ -81,15 +85,17 @@ public class GameScreen extends ScreenAdapter {
         style.knob = touchpadSkin.getDrawable("touchKnob");
 
         Touchpad touchPad = new Touchpad(20, style);
-        touchPad.setBounds(50, 50, 150, 150);
+        touchPad.setBounds(50, 50, 200, 200);
         uiStage.addActor(touchPad);
+
+        touchPad.addListener(new InputHandler(player));
     }
 
     private void initEngine(PooledEngine engine, SpriteBatch batch) {
         Texture texture = new Texture("badlogic.jpg");
         engine.addSystem(new RenderSystem(batch));
         engine.addSystem(new MovementSystem());
-        Entity player = engine.createEntity();
+        player = engine.createEntity();
         player.add(new PositionComponent(50, 50));
         player.add(new VelocityComponent(5, 5));
         player.add(new DrawableComponent(new TextureRegion(texture)));

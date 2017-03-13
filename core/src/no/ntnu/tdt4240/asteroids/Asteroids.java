@@ -1,5 +1,6 @@
 package no.ntnu.tdt4240.asteroids;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -10,6 +11,8 @@ public class Asteroids extends Game {
     private SpriteBatch batch;
     @Override
     public void create() {
+        Gdx.app.setLogLevel(Application.LOG_DEBUG);
+
         // TODO: load assets
         // TODO: load settings
         batch = new SpriteBatch();
@@ -22,7 +25,6 @@ public class Asteroids extends Game {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         super.render();
     }
-
 
     public SpriteBatch getBatch() {
         return batch;
