@@ -9,9 +9,12 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -22,6 +25,7 @@ import no.ntnu.tdt4240.asteroids.entity.component.PositionComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.VelocityComponent;
 import no.ntnu.tdt4240.asteroids.entity.system.MovementSystem;
 import no.ntnu.tdt4240.asteroids.entity.system.RenderSystem;
+import no.ntnu.tdt4240.asteroids.input.TouchpadButton;
 import no.ntnu.tdt4240.asteroids.input.TouchpadHandler;
 
 public class GameScreen extends ScreenAdapter {
@@ -88,6 +92,25 @@ public class GameScreen extends ScreenAdapter {
         Touchpad touchPad = new Touchpad(10, style);
         touchPad.setBounds(50, 50, 200, 200);
         uiStage.addActor(touchPad);
+
+        Actor button = new TouchpadButton();
+        button.setBounds(guiStage.getWidth() - 100 - 50, 50, 100, 100);
+        uiStage.addActor(button);
+        button.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Gdx.app.debug(TAG, "clicked");
+                super.clicked(event, x, y);
+            }
+        });
+
+//        button.addListener(new InputListener() {
+//            @Override
+//            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+//                Gdx.app.debug(TAG, "clicked");
+//                return super.touchDown(event, x, y, pointer, button);
+//            }
+//        });
 
         touchPad.addListener(new TouchpadHandler(player));
     }
