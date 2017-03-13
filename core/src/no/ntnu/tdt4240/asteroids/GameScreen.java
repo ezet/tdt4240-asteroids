@@ -24,6 +24,7 @@ public class GameScreen extends ScreenAdapter {
     private PooledEngine engine;
     private Camera camera;
     private SpriteBatch batch;
+    private boolean running;
 
     public GameScreen(Asteroids game) {
         this.game = game;
@@ -39,15 +40,28 @@ public class GameScreen extends ScreenAdapter {
         camera = stage.getCamera();
         stage.addActor(touchPad);
 
-        initEcs();
+        initEngine();
+
+        running = true;
     }
 
     @Override
     public void render(float delta) {
-        engine.update(delta);
+        update(delta);
+        draw();
     }
 
-    private void initEcs() {
+    private void update(float delta) {
+        if (delta > 0.1f) delta = 0.1f;
+        if (running) engine.update(delta);
+        // TODO: update everything else
+    }
+
+    private void draw() {
+        // TODO: draw UI
+    }
+
+    private void initEngine() {
         Texture texture = new Texture("badlogic.jpg");
         engine = new PooledEngine();
         engine.addSystem(new RenderSystem(camera));

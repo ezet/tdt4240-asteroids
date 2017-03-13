@@ -17,8 +17,11 @@ public class MainScreen extends ScreenAdapter {
     public MainScreen(Asteroids game) {
         this.game = game;
         batch = game.getBatch();
+        touchPoint = new Vector3();
         guiCam = new OrthographicCamera(320, 480);
         guiCam.position.set(320 / 2, 480 / 2, 0);
+
+        // TODO: set touch points
     }
 
     @Override
@@ -31,7 +34,6 @@ public class MainScreen extends ScreenAdapter {
         if (Gdx.input.justTouched()) {
             guiCam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
             game.setScreen(new GameScreen(game));
-            return;
             // TODO: handle input and process events
         }
     }
