@@ -85,7 +85,7 @@ public class GameScreen extends ScreenAdapter {
         style.background = touchpadSkin.getDrawable("touchBackground");
         style.knob = touchpadSkin.getDrawable("touchKnob");
 
-        Touchpad touchPad = new Touchpad(20, style);
+        Touchpad touchPad = new Touchpad(10, style);
         touchPad.setBounds(50, 50, 200, 200);
         uiStage.addActor(touchPad);
 
@@ -93,13 +93,13 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void initEngine(PooledEngine engine, SpriteBatch batch) {
-        Texture texture = new Texture("badlogic.jpg");
+        Texture texture = new Texture("slide_1.png");
         engine.addSystem(new RenderSystem(batch));
         engine.addSystem(new MovementSystem());
         // TODO: player should be local var, change it when touch listener is refactored
         player = engine.createEntity();
-        player.add(new PositionComponent(50, 50));
-        player.add(new VelocityComponent(5, 5));
+        player.add(new PositionComponent(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2));
+        player.add(new VelocityComponent(0, 0));
         player.add(new DrawableComponent(new TextureRegion(texture)));
         engine.addEntity(player);
     }

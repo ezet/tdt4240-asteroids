@@ -12,6 +12,7 @@ import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.velocityMap
 // TODO: refactor so we don't depend on the entity, use command pattern
 public class TouchpadHandler extends ChangeListener {
 
+    public static final int MAX_VELOCITY = 500;
     private static final String TAG = TouchpadHandler.class.getSimpleName();
     private final Entity player;
 
@@ -25,7 +26,7 @@ public class TouchpadHandler extends ChangeListener {
         Touchpad touchpad = (Touchpad) actor;
         float knobPercentX = touchpad.getKnobPercentX();
         float knobPercentY = touchpad.getKnobPercentY();
-        velocityComponent.setX(knobPercentX * 300);
-        velocityComponent.setY(knobPercentY * 300);
+        velocityComponent.setX(knobPercentX * MAX_VELOCITY);
+        velocityComponent.setY(knobPercentY * MAX_VELOCITY);
     }
 }

@@ -6,6 +6,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import no.ntnu.tdt4240.asteroids.screen.MainScreen;
+
 public class Asteroids extends Game {
 
     private SpriteBatch batch;
@@ -16,7 +18,7 @@ public class Asteroids extends Game {
         // TODO: load assets
         // TODO: load settings
         batch = new SpriteBatch();
-        setScreen(new no.ntnu.tdt4240.asteroids.screen.MainScreen(this));
+        setScreen(new MainScreen(this));
     }
 
     @Override
