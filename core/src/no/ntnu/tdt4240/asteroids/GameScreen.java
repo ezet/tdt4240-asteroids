@@ -21,6 +21,7 @@ import no.ntnu.tdt4240.asteroids.entity.system.RenderSystem;
 public class GameScreen extends ScreenAdapter {
 
     private final Asteroids game;
+    private final Stage stage;
     private PooledEngine engine;
     private Camera camera;
     private SpriteBatch batch;
@@ -31,11 +32,21 @@ public class GameScreen extends ScreenAdapter {
         batch = game.getBatch();
 
 
-        Stage stage = new Stage();
+        stage = new Stage();
         Gdx.input.setInputProcessor(stage);
 
-        Skin touchPadSkin = new Skin(Gdx.files.internal("data/uiskin.json"));
-        Touchpad touchPad = new Touchpad(20, touchPadSkin);
+//        Skin touchPadSkin = new Skin(Gdx.files.internal("data/uiskin.json"));
+//        Skin touchPadSkin = new Skin(new FileHandle("data/uiskin.json"));
+
+        Skin touchPadSkin = new Skin();
+        touchPadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
+        touchPadSkin.add("touchKnob", new Texture("data/touchKnob.png"));
+        // TODO: use skin.json
+        Touchpad.TouchpadStyle style = new Touchpad.TouchpadStyle();
+        style.background = touchPadSkin.getDrawable("touchBackground");
+        style.knob = touchPadSkin.getDrawable("touchKnob");
+
+        Touchpad touchPad = new Touchpad(20, style);
         touchPad.setBounds(15, 15, 100, 100);
         camera = stage.getCamera();
         stage.addActor(touchPad);
@@ -43,6 +54,7 @@ public class GameScreen extends ScreenAdapter {
         initEngine();
 
         running = true;
+
     }
 
     @Override
@@ -58,6 +70,8 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void draw() {
+        stage.draw();
+
         // TODO: draw UI
     }
 

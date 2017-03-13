@@ -31,9 +31,9 @@ public class MainScreen extends ScreenAdapter {
     }
 
     private void update() {
+        game.setScreen(new GameScreen(game));
         if (Gdx.input.justTouched()) {
             guiCam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
-            game.setScreen(new GameScreen(game));
             // TODO: handle input and process events
         }
     }
