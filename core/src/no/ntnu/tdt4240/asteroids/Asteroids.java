@@ -18,12 +18,23 @@ import no.ntnu.tdt4240.asteroids.entity.system.RenderSystem;
 public class Asteroids extends ApplicationAdapter {
 
     PooledEngine engine;
+    private OrthographicCamera camera;
 
     @Override
     public void create() {
-        Texture texture = new Texture("badlogic.jpg");
+        camera = new OrthographicCamera(640, 480);
+        initEcs();
+    }
 
-        OrthographicCamera camera = new OrthographicCamera(640, 480);
+    @Override
+    public void render() {
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        engine.update(Gdx.graphics.getDeltaTime());
+    }
+
+    private void initEcs() {
+        Texture texture = new Texture("badlogic.jpg");
         engine = new PooledEngine();
         engine.addSystem(new RenderSystem(camera));
         engine.addSystem(new MovementSystem());
@@ -33,12 +44,5 @@ public class Asteroids extends ApplicationAdapter {
         player.add(new VelocityComponent(5, 5));
         player.add(new DrawableComponent(new TextureRegion(texture)));
         engine.addEntity(player);
-    }
-
-    @Override
-    public void render() {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        engine.update(Gdx.graphics.getDeltaTime());
     }
 }
