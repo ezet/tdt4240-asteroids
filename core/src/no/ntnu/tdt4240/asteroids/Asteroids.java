@@ -16,7 +16,7 @@ public class Asteroids extends Game {
         // TODO: load assets
         // TODO: load settings
         batch = new SpriteBatch();
-        setScreen(new MainScreen(this));
+        setScreen(new no.ntnu.tdt4240.asteroids.screen.MainScreen(this));
     }
 
     @Override

@@ -1,4 +1,4 @@
-package no.ntnu.tdt4240.asteroids;
+package no.ntnu.tdt4240.asteroids.screen;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.PooledEngine;
@@ -16,12 +16,13 @@ import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import no.ntnu.tdt4240.asteroids.entity.InputHandler;
+import no.ntnu.tdt4240.asteroids.Asteroids;
 import no.ntnu.tdt4240.asteroids.entity.component.DrawableComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.PositionComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.VelocityComponent;
 import no.ntnu.tdt4240.asteroids.entity.system.MovementSystem;
 import no.ntnu.tdt4240.asteroids.entity.system.RenderSystem;
+import no.ntnu.tdt4240.asteroids.input.TouchpadHandler;
 
 public class GameScreen extends ScreenAdapter {
 
@@ -88,13 +89,14 @@ public class GameScreen extends ScreenAdapter {
         touchPad.setBounds(50, 50, 200, 200);
         uiStage.addActor(touchPad);
 
-        touchPad.addListener(new InputHandler(player));
+        touchPad.addListener(new TouchpadHandler(player));
     }
 
     private void initEngine(PooledEngine engine, SpriteBatch batch) {
         Texture texture = new Texture("badlogic.jpg");
         engine.addSystem(new RenderSystem(batch));
         engine.addSystem(new MovementSystem());
+        // TODO: player should be local var, change it when touch listener is refactored
         player = engine.createEntity();
         player.add(new PositionComponent(50, 50));
         player.add(new VelocityComponent(5, 5));
