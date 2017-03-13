@@ -9,12 +9,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -25,12 +20,15 @@ import no.ntnu.tdt4240.asteroids.entity.component.PositionComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.VelocityComponent;
 import no.ntnu.tdt4240.asteroids.entity.system.MovementSystem;
 import no.ntnu.tdt4240.asteroids.entity.system.RenderSystem;
-import no.ntnu.tdt4240.asteroids.input.TouchpadButton;
-import no.ntnu.tdt4240.asteroids.input.TouchpadHandler;
+import no.ntnu.tdt4240.asteroids.input.GamepadButtonListener;
+import no.ntnu.tdt4240.asteroids.input.GamepadJoystickListener;
+import no.ntnu.tdt4240.asteroids.input.InputHandler;
+import no.ntnu.tdt4240.asteroids.input.VirtualGamepad;
 
 public class GameScreen extends ScreenAdapter {
 
     private static final String TAG = GameScreen.class.getSimpleName();
+    private static final int MAX_VELOCITY = 500;
 
     private final Asteroids game;
     private final Camera guiCam;
@@ -49,12 +47,14 @@ public class GameScreen extends ScreenAdapter {
         guiCam = new OrthographicCamera();
         Viewport guiViewport = new ScalingViewport(Scaling.stretch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         guiStage = new Stage(guiViewport, batch);
+        Gdx.input.setInputProcessor(guiStage);
+
 
 
         engine = new PooledEngine();
         initEngine(engine, batch);
 
-        initTouchpad(guiStage);
+        initGamepad(guiStage);
         running = true;
     }
 
@@ -76,43 +76,12 @@ public class GameScreen extends ScreenAdapter {
         // TODO: draw UI
     }
 
-    private void initTouchpad(Stage uiStage) {
-
-        Gdx.input.setInputProcessor(uiStage);
-
-        // TODO: use uiskin.json
-//        Skin touchpadSkin = new Skin(Gdx.files.internal("data/uiskin.json"));
-        Skin touchpadSkin = new Skin();
-        touchpadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
-        touchpadSkin.add("touchKnob", new Texture("data/touchKnob.png"));
-        Touchpad.TouchpadStyle style = new Touchpad.TouchpadStyle();
-        style.background = touchpadSkin.getDrawable("touchBackground");
-        style.knob = touchpadSkin.getDrawable("touchKnob");
-
-        Touchpad touchPad = new Touchpad(10, style);
-        touchPad.setBounds(50, 50, 200, 200);
-        uiStage.addActor(touchPad);
-
-        Actor button = new TouchpadButton();
-        button.setBounds(guiStage.getWidth() - 100 - 50, 50, 100, 100);
-        uiStage.addActor(button);
-        button.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.debug(TAG, "clicked");
-                super.clicked(event, x, y);
-            }
-        });
-
-//        button.addListener(new InputListener() {
-//            @Override
-//            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-//                Gdx.app.debug(TAG, "clicked");
-//                return super.touchDown(event, x, y, pointer, button);
-//            }
-//        });
-
-        touchPad.addListener(new TouchpadHandler(player));
+    private void initGamepad(Stage guiStage) {
+        InputHandler inputHandler = new InputHandler(player, engine);
+        VirtualGamepad gamepad = new VirtualGamepad();
+        gamepad.addButtonListener(new GamepadButtonListener(inputHandler));
+        gamepad.addJoystickListener(new GamepadJoystickListener(inputHandler));
+        guiStage.addActor(gamepad);
     }
 
     private void initEngine(PooledEngine engine, SpriteBatch batch) {
