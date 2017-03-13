@@ -5,12 +5,16 @@ import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
+import com.badlogic.gdx.utils.Scaling;
+import com.badlogic.gdx.utils.viewport.ScalingViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import no.ntnu.tdt4240.asteroids.entity.component.DrawableComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.PositionComponent;
@@ -21,40 +25,28 @@ import no.ntnu.tdt4240.asteroids.entity.system.RenderSystem;
 public class GameScreen extends ScreenAdapter {
 
     private final Asteroids game;
-    private final Stage stage;
-    private PooledEngine engine;
-    private Camera camera;
-    private SpriteBatch batch;
+    private final Camera guiCam;
+    private final SpriteBatch batch;
+    private final Stage guiStage;
+    private final PooledEngine engine;
     private boolean running;
 
     public GameScreen(Asteroids game) {
         this.game = game;
+
+        // TODO: figure out camera/viewport/stage stuff
         batch = game.getBatch();
 
+        guiCam = new OrthographicCamera();
+        Viewport guiViewport = new ScalingViewport(Scaling.stretch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        guiStage = new Stage(guiViewport, batch);
 
-        stage = new Stage();
-        Gdx.input.setInputProcessor(stage);
+        initTouchpad(guiStage);
 
-//        Skin touchPadSkin = new Skin(Gdx.files.internal("data/uiskin.json"));
-//        Skin touchPadSkin = new Skin(new FileHandle("data/uiskin.json"));
-
-        Skin touchPadSkin = new Skin();
-        touchPadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
-        touchPadSkin.add("touchKnob", new Texture("data/touchKnob.png"));
-        // TODO: use skin.json
-        Touchpad.TouchpadStyle style = new Touchpad.TouchpadStyle();
-        style.background = touchPadSkin.getDrawable("touchBackground");
-        style.knob = touchPadSkin.getDrawable("touchKnob");
-
-        Touchpad touchPad = new Touchpad(20, style);
-        touchPad.setBounds(15, 15, 100, 100);
-        camera = stage.getCamera();
-        stage.addActor(touchPad);
-
-        initEngine();
+        engine = new PooledEngine();
+        initEngine(engine, batch);
 
         running = true;
-
     }
 
     @Override
@@ -70,17 +62,33 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void draw() {
-        stage.draw();
+        guiStage.draw();
 
         // TODO: draw UI
     }
 
-    private void initEngine() {
-        Texture texture = new Texture("badlogic.jpg");
-        engine = new PooledEngine();
-        engine.addSystem(new RenderSystem(camera));
-        engine.addSystem(new MovementSystem());
+    private void initTouchpad(Stage uiStage) {
 
+        Gdx.input.setInputProcessor(uiStage);
+
+        // TODO: use uiskin.json
+//        Skin touchpadSkin = new Skin(Gdx.files.internal("data/uiskin.json"));
+        Skin touchpadSkin = new Skin();
+        touchpadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
+        touchpadSkin.add("touchKnob", new Texture("data/touchKnob.png"));
+        Touchpad.TouchpadStyle style = new Touchpad.TouchpadStyle();
+        style.background = touchpadSkin.getDrawable("touchBackground");
+        style.knob = touchpadSkin.getDrawable("touchKnob");
+
+        Touchpad touchPad = new Touchpad(20, style);
+        touchPad.setBounds(50, 50, 150, 150);
+        uiStage.addActor(touchPad);
+    }
+
+    private void initEngine(PooledEngine engine, SpriteBatch batch) {
+        Texture texture = new Texture("badlogic.jpg");
+        engine.addSystem(new RenderSystem(batch));
+        engine.addSystem(new MovementSystem());
         Entity player = engine.createEntity();
         player.add(new PositionComponent(50, 50));
         player.add(new VelocityComponent(5, 5));
