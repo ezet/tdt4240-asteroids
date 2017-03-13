@@ -6,16 +6,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
-import no.ntnu.tdt4240.asteroids.entity.component.DrawableComponent;
+import no.ntnu.tdt4240.asteroids.entity.DefaultDrawableComponentFactory;
+import no.ntnu.tdt4240.asteroids.entity.IDrawableComponentFactory;
 import no.ntnu.tdt4240.asteroids.entity.component.PositionComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.VelocityComponent;
 import no.ntnu.tdt4240.asteroids.entity.system.MovementSystem;
@@ -37,9 +36,12 @@ public class GameScreen extends ScreenAdapter {
     private final PooledEngine engine;
     private boolean running;
     private Entity player;
+    private IDrawableComponentFactory drawableComponentFactory;
 
     public GameScreen(Asteroids game) {
         this.game = game;
+        // TODO: get factory from config
+        drawableComponentFactory = new DefaultDrawableComponentFactory();
 
         // TODO: figure out camera/viewport/stage stuff
         batch = game.getBatch();
@@ -77,7 +79,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void initGamepad(Stage guiStage) {
-        InputHandler inputHandler = new InputHandler(player, engine);
+        InputHandler inputHandler = new InputHandler(player, engine, drawableComponentFactory);
         VirtualGamepad gamepad = new VirtualGamepad();
         gamepad.addButtonListener(new GamepadButtonListener(inputHandler));
         gamepad.addJoystickListener(new GamepadJoystickListener(inputHandler));
@@ -85,14 +87,14 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void initEngine(PooledEngine engine, SpriteBatch batch) {
-        Texture texture = new Texture("slide_1.png");
+
         engine.addSystem(new RenderSystem(batch));
         engine.addSystem(new MovementSystem());
         // TODO: player should be local var, change it when touch listener is refactored
         player = engine.createEntity();
         player.add(new PositionComponent(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2));
         player.add(new VelocityComponent(0, 0));
-        player.add(new DrawableComponent(new TextureRegion(texture)));
+        player.add(drawableComponentFactory.getPlayer());
         engine.addEntity(player);
     }
 
