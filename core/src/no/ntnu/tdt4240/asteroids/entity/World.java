@@ -8,6 +8,7 @@ import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 
 import java.util.Random;
 
@@ -102,16 +103,40 @@ public class World {
     private Entity createObstacle() {
         Entity obstacle = EntityFactory.getInstance().createObstacle();
 
-        // TODO: Improve obstacle spawn position
         PositionComponent position = obstacle.getComponent(PositionComponent.class);
         DrawableComponent drawable = obstacle.getComponent(DrawableComponent.class);
 
-        int x = MathUtils.random(0, Gdx.graphics.getWidth());
-        int y = Gdx.graphics.getHeight() + drawable.region.getRegionHeight() / 2;
+        int obstacleSide = MathUtils.random(4);
+        // 0 = top-spawn, 1 = bottom-spawn, 2 = left-spawn, 3 = right-spawn
+        int x, y;
+        float xVec, yVec;
+
+        // Based on spawn, position and movement (always inwards) is generated randomly.
+        if (obstacleSide < 2){
+            x = MathUtils.random(0, Gdx.graphics.getWidth());
+            xVec = MathUtils.random(-100,101);
+            yVec = MathUtils.random()*200;
+            if (obstacleSide == 0){
+                y = 0;
+            } else {
+                yVec *= -1;
+                y = Gdx.graphics.getHeight() + drawable.region.getRegionHeight() / 2;
+            }
+        } else {
+            y = MathUtils.random(0, Gdx.graphics.getHeight() + drawable.region.getRegionHeight() / 2);
+            yVec = MathUtils.random(-100, 101);
+            xVec = MathUtils.random()*200;
+            if (obstacleSide == 2){
+                x = 0;
+            } else {
+                x = Gdx.graphics.getWidth();
+                xVec *= -1;
+            }
+        }
         position.position.set(x, y);
 
         MovementComponent movement = obstacle.getComponent(MovementComponent.class);
-        movement.velocity.setToRandomDirection().clamp(100, 250);
+        movement.velocity.set(xVec, yVec);
         return obstacle;
     }
 
