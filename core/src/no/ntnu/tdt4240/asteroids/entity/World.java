@@ -110,31 +110,34 @@ public class World {
         // 0 = top-spawn, 1 = bottom-spawn, 2 = left-spawn, 3 = right-spawn
         int x, y;
         float xVec, yVec;
+        int halfRegionHeight = drawable.region.getRegionHeight()/2;
+        int halfRegionWidth = drawable.region.getRegionWidth()/2;
+        int graphicsWidth = Gdx.graphics.getWidth();
+        int graphicsHeight = Gdx.graphics.getHeight();
 
         // Based on spawn, position and movement (always inwards) is generated randomly.
         if (obstacleSide < 2){
-            x = MathUtils.random(0, Gdx.graphics.getWidth());
+            x = MathUtils.random(-halfRegionWidth, graphicsWidth + halfRegionWidth);
             xVec = MathUtils.random(-100,101);
             yVec = MathUtils.random()*200;
             if (obstacleSide == 0){
-                y = 0;
+                y = -halfRegionHeight;
             } else {
                 yVec *= -1;
-                y = Gdx.graphics.getHeight() + drawable.region.getRegionHeight() / 2;
+                y = graphicsHeight + halfRegionHeight;
             }
         } else {
-            y = MathUtils.random(0, Gdx.graphics.getHeight() + drawable.region.getRegionHeight() / 2);
+            y = MathUtils.random(-halfRegionHeight, graphicsHeight + halfRegionHeight);
             yVec = MathUtils.random(-100, 101);
             xVec = MathUtils.random()*200;
             if (obstacleSide == 2){
-                x = 0;
+                x = -halfRegionWidth;
             } else {
-                x = Gdx.graphics.getWidth();
+                x = graphicsWidth + halfRegionWidth;
                 xVec *= -1;
             }
         }
         position.position.set(x, y);
-
         MovementComponent movement = obstacle.getComponent(MovementComponent.class);
         movement.velocity.set(xVec, yVec);
         return obstacle;
