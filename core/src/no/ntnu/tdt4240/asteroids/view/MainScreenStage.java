@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.actions.RunnableAction;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -24,9 +25,9 @@ public class MainScreenStage extends Stage implements IMainScreenView {
 
     private static final String TAG = MainScreenStage.class.getSimpleName();
     private static Viewport viewport = new ScalingViewport(Scaling.stretch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-    public final Skin buttonSkin = new Skin(Gdx.files.internal("data/uiskin.json"));
-    public final TextButton play = new TextButton("PLAY", buttonSkin);
-    public final TextButton exit = new TextButton("EXIT", buttonSkin);
+    private final Skin buttonSkin = new Skin(Gdx.files.internal("data/uiskin.json"));
+    private final TextButton play = new TextButton("PLAY", buttonSkin);
+    private final TextButton quit = new TextButton("QUIT", buttonSkin);
     private final Table table = new Table();
     private final BitmapFont defaultFont = new BitmapFont();
     private final Label.LabelStyle defaultLabelStyle = new Label.LabelStyle(defaultFont, Color.WHITE);
@@ -35,7 +36,7 @@ public class MainScreenStage extends Stage implements IMainScreenView {
     // TODO: implement main screen gui
 
 
-    public MainScreenStage(MainScreen.InputHandler inputHandler, Batch batch) {
+    public MainScreenStage(Batch batch, MainScreen.InputHandler inputHandler) {
         super(viewport, batch);
         this.inputHandler = inputHandler;
         setDebugAll(true);
@@ -47,28 +48,28 @@ public class MainScreenStage extends Stage implements IMainScreenView {
 
     private void init() {
         play.getLabel().setFontScale(3);
-        exit.getLabel().setFontScale(3);
+        quit.getLabel().setFontScale(3);
         table.setFillParent(true);
         table.add(play).pad(30);
         table.row();
-        table.add(exit).pad(30);
+        table.add(quit).pad(30);
         table.row();
         play.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                table.addAction(Actions.sequence(Actions.fadeOut(1), Actions.run(new Runnable() {
+                table.addAction(Actions.sequence(Actions.fadeOut(1), new RunnableAction() {
                     @Override
                     public void run() {
                         inputHandler.onPlay();
 //                        Gdx.app.debug(TAG, "Runnable: run: ");
                     }
-                })));
+                }));
             }
         });
-        exit.addListener(new ClickListener() {
+        quit.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                inputHandler.onExit();
+                inputHandler.onQuit();
             }
         });
     }
@@ -87,12 +88,6 @@ public class MainScreenStage extends Stage implements IMainScreenView {
 //        batch.end();
 //        batch.enableBlending();
         super.draw();
-    }
-
-    @Override
-    public void show() {
-
-
     }
 
     @Override

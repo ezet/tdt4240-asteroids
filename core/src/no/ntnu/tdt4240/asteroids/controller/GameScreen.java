@@ -13,12 +13,12 @@ import no.ntnu.tdt4240.asteroids.entity.system.RenderSystem;
 import no.ntnu.tdt4240.asteroids.entity.util.DefaultDrawableComponentFactory;
 import no.ntnu.tdt4240.asteroids.entity.util.EntityFactory;
 import no.ntnu.tdt4240.asteroids.entity.util.IDrawableComponentFactory;
-import no.ntnu.tdt4240.asteroids.input.InputHandler;
+import no.ntnu.tdt4240.asteroids.input.ControllerInputHandler;
 import no.ntnu.tdt4240.asteroids.view.GameScreenStage;
 import no.ntnu.tdt4240.asteroids.view.IGameScreenView;
 import no.ntnu.tdt4240.asteroids.view.widget.GamepadController;
 
-class GameScreen extends ScreenAdapter implements GameModel.IGameListener {
+public class GameScreen extends ScreenAdapter implements GameModel.IGameListener {
 
     @SuppressWarnings("unused")
     private static final String TAG = GameScreen.class.getSimpleName();
@@ -43,10 +43,10 @@ class GameScreen extends ScreenAdapter implements GameModel.IGameListener {
     }
 
     private IGameScreenView setupView(PooledEngine engine, GameModel world) {
-        InputHandler inputHandler = new InputHandler(engine);
-        inputHandler.setControlledEntity(world.getPlayer());
-        view = new GameScreenStage(game.getBatch());
-        view.setInputController(new GamepadController(inputHandler));
+        ControllerInputHandler controllerInputHandler = new ControllerInputHandler(engine);
+        controllerInputHandler.setControlledEntity(world.getPlayer());
+        view = new GameScreenStage(game.getBatch(), new InputHandler());
+        view.setInputController(new GamepadController(controllerInputHandler));
         Gdx.input.setInputProcessor(view.getInputProcessor());
         return view;
     }
@@ -119,5 +119,28 @@ class GameScreen extends ScreenAdapter implements GameModel.IGameListener {
 
     private void onUpdateScore() {
         view.updateScore(world.getScore());
+    }
+
+    public class InputHandler {
+
+        InputHandler() {
+        }
+
+        public void onPause() {
+            world.pause();
+        }
+
+        public void onResume() {
+            world.run();
+        }
+
+        public void onQuitLevel() {
+
+        }
+
+        public void onQuit() {
+
+        }
+
     }
 }

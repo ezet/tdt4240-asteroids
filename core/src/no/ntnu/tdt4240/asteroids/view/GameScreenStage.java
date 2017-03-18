@@ -6,30 +6,50 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.actions.RunnableAction;
+import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import no.ntnu.tdt4240.asteroids.controller.GameScreen;
+
 
 public class GameScreenStage extends Stage implements IGameScreenView {
 
+    private static final String TAG = GameScreenStage.class.getSimpleName();
     // TODO: define proper default GUI resources like font, label style etc.
     private static Viewport guiViewport = new ScalingViewport(Scaling.stretch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-    private Table table;
-    private BitmapFont defaultFont = new BitmapFont();
-    private Label.LabelStyle defaultLabelStyle = new Label.LabelStyle(defaultFont, Color.WHITE);
-    private Label scoreLabel = new Label("SCORE: 0", defaultLabelStyle);
-    private Label levelLabel = new Label("LEVEL: 0", defaultLabelStyle);
+    private final GameScreen.InputHandler inputHandler;
+    private final Table table = new Table();
+    private final BitmapFont defaultFont = new BitmapFont();
+    private final Label.LabelStyle defaultLabelStyle = new Label.LabelStyle(defaultFont, Color.WHITE);
+    private final Label scoreLabel = new Label("SCORE: 0", defaultLabelStyle);
+    private final Label levelLabel = new Label("LEVEL: 0", defaultLabelStyle);
+    private final Skin buttonSkin = new Skin(Gdx.files.internal("data/uiskin.json"));
+    private final TextButton resume = new TextButton("RESUME", buttonSkin);
+    private final TextButton settings = new TextButton("SETTINGS", buttonSkin);
+    private final TextButton quitToMenu = new TextButton("QUIT TO MENU", buttonSkin);
+    private final TextButton quit = new TextButton("QUIT", buttonSkin);
+    private Cell mainMenuCell;
 
-    public GameScreenStage(Batch batch) {
+
+    public GameScreenStage(Batch batch, GameScreen.InputHandler inputHandler) {
         super(guiViewport, batch);
-        table = new Table();
+        this.inputHandler = inputHandler;
         this.addActor(table);
         initGui();
-//        setDebugAll(true);
+        setDebugAll(true);
     }
 
     @Override
@@ -41,10 +61,69 @@ public class GameScreenStage extends Stage implements IGameScreenView {
     private void initGui() {
         table.setFillParent(true);
         table.top();
+        // TODO: use proper style, remove scaling
         scoreLabel.scaleBy(2);
         levelLabel.scaleBy(2);
         table.add(scoreLabel).pad(20);
         table.add(levelLabel).pad(20);
+        table.row();
+        VerticalGroup verticalGroup = new VerticalGroup();
+        verticalGroup.setVisible(false);
+        verticalGroup.getColor().a = 0;
+        mainMenuCell = table.add(verticalGroup).colspan(2);
+        verticalGroup.space(20);
+        verticalGroup.addActor(resume);
+        resume.setFillParent(true);
+        verticalGroup.addActor(settings);
+        verticalGroup.addActor(quit);
+        verticalGroup.addActor(quitToMenu);
+        addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (event.isHandled()) return;
+                Gdx.app.debug(TAG, "ChangeListener: pause");
+                pauseGame();
+            }
+        });
+        resume.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (event.isHandled()) return;
+                Gdx.app.debug(TAG, "ChangeListener: resume");
+                resumeGame();
+                event.cancel();
+            }
+        });
+        quit.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (event.isHandled()) return;
+                Gdx.app.debug(TAG, "ChangeListener: quit");
+                quit();
+                event.cancel();
+            }
+        });
+
+
+    }
+
+    private void quit() {
+
+    }
+
+    private void pauseGame() {
+        inputHandler.onPause();
+        mainMenuCell.getActor().addAction(Actions.sequence(Actions.visible(true), Actions.fadeIn(1)));
+    }
+
+    private void resumeGame() {
+        mainMenuCell.getActor().addAction(Actions.sequence(Actions.fadeOut(1), Actions.visible(false), new RunnableAction() {
+            @Override
+            public void run() {
+                inputHandler.onResume();
+            }
+        }));
+
     }
 
     @Override
@@ -66,4 +145,6 @@ public class GameScreenStage extends Stage implements IGameScreenView {
     public InputProcessor getInputProcessor() {
         return this;
     }
+
+
 }
