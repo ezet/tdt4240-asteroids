@@ -58,22 +58,28 @@ public class GameScreenStage extends Stage implements IGameScreenView {
         addActor(inputController);
     }
 
+    // TODO: clean up
     private void initGui() {
         table.setFillParent(true);
         table.top();
         // TODO: use proper style, remove scaling
-        scoreLabel.scaleBy(2);
-        levelLabel.scaleBy(2);
-        table.add(scoreLabel).pad(20);
-        table.add(levelLabel).pad(20);
+        scoreLabel.setFontScale(2);
+        levelLabel.setFontScale(2);
+        table.add(scoreLabel).space(20);
+        table.add(levelLabel).space(20);
         table.row();
+
+        resume.getLabel().setFontScale(3);
+        settings.getLabel().setFontScale(3);
+        quitToMenu.getLabel().setFontScale(3);
+        quit.getLabel().setFontScale(3);
+
         VerticalGroup verticalGroup = new VerticalGroup();
         verticalGroup.setVisible(false);
         verticalGroup.getColor().a = 0;
-        mainMenuCell = table.add(verticalGroup).colspan(2);
+        mainMenuCell = table.add(verticalGroup).colspan(2).expandY();
         verticalGroup.space(20);
         verticalGroup.addActor(resume);
-        resume.setFillParent(true);
         verticalGroup.addActor(settings);
         verticalGroup.addActor(quit);
         verticalGroup.addActor(quitToMenu);
@@ -83,15 +89,35 @@ public class GameScreenStage extends Stage implements IGameScreenView {
                 if (event.isHandled()) return;
                 Gdx.app.debug(TAG, "ChangeListener: pause");
                 pauseGame();
+                event.handle();
             }
         });
+
         resume.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (event.isHandled()) return;
                 Gdx.app.debug(TAG, "ChangeListener: resume");
                 resumeGame();
-                event.cancel();
+                event.handle();
+            }
+        });
+        settings.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (event.isHandled()) return;
+                Gdx.app.debug(TAG, "ChangeListener: settings");
+                settings();
+                event.handle();
+            }
+        });
+        quitToMenu.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (event.isHandled()) return;
+                Gdx.app.debug(TAG, "ChangeListener: quitToMenu");
+                quitToMenu();
+                event.handle();
             }
         });
         quit.addListener(new ChangeListener() {
@@ -100,10 +126,16 @@ public class GameScreenStage extends Stage implements IGameScreenView {
                 if (event.isHandled()) return;
                 Gdx.app.debug(TAG, "ChangeListener: quit");
                 quit();
-                event.cancel();
+                event.handle();
             }
         });
+    }
 
+    private void quitToMenu() {
+
+    }
+
+    private void settings() {
 
     }
 

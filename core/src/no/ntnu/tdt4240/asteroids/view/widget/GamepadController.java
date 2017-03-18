@@ -79,7 +79,8 @@ public class GamepadController extends WidgetGroup {
         @Override
         public void clicked(InputEvent event, float x, float y) {
             controllerInputHandler.fire();
-            event.cancel();
+            event.stop();
+            event.handle();
         }
     }
 
@@ -100,7 +101,8 @@ public class GamepadController extends WidgetGroup {
             float knobPercentX = touchpad.getKnobPercentX();
             float knobPercentY = touchpad.getKnobPercentY();
             controllerInputHandler.accelerate(knobPercentX, knobPercentY);
-            event.cancel();
+            event.handle();
+            event.stop();
         }
     }
 }
