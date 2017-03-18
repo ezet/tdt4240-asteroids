@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -37,9 +38,11 @@ public class MainScreenStage extends Stage implements IMainScreenView {
     public MainScreenStage(MainScreen.InputHandler inputHandler, Batch batch) {
         super(viewport, batch);
         this.inputHandler = inputHandler;
-//        setDebugAll(true);
-        init();
+        setDebugAll(true);
+        table.addAction(Actions.alpha(0));
         addActor(table);
+        init();
+        table.addAction(Actions.fadeIn(1));
     }
 
     private void init() {
@@ -53,7 +56,13 @@ public class MainScreenStage extends Stage implements IMainScreenView {
         play.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                inputHandler.onPlay();
+                table.addAction(Actions.sequence(Actions.fadeOut(1), Actions.run(new Runnable() {
+                    @Override
+                    public void run() {
+                        inputHandler.onPlay();
+//                        Gdx.app.debug(TAG, "Runnable: run: ");
+                    }
+                })));
             }
         });
         exit.addListener(new ClickListener() {
@@ -78,6 +87,12 @@ public class MainScreenStage extends Stage implements IMainScreenView {
 //        batch.end();
 //        batch.enableBlending();
         super.draw();
+    }
+
+    @Override
+    public void show() {
+
+
     }
 
     @Override
