@@ -58,6 +58,9 @@ public class GameModel {
     private static final int MAX_OBSTACLES = 8;
     // TODO: add config
     private static final int MIN_OBSTACLES = 3;
+    private static final int PRIMARY_OBSTACLE_SPAWN_SPEED = 200;
+    private static final int SECONDARY_OBSTACLE_SPAWN_SPEED = 100;
+
     public final Vector<IGameListener> listeners = new Vector<>();
     // TODO: add config
     final PooledEngine engine;
@@ -196,38 +199,45 @@ public class GameModel {
         HealthComponent healthComponent = healthMapper.get(entity);
         healthComponent.entityDestroyedHandler = obstacleDestroyedHandler;
 
-        // TODO: replace values with constants
         // TODO: consider not spawning obstacles close to the player
-        int spawnPosition = MathUtils.random(4);
-        // 0 = top-spawn, 1 = bottom-spawn, 2 = left-spawn, 3 = right-spawn
-        int x, y;
-        float xVec, yVec;
+
+        ScreenEdges edge = ScreenEdges.values()[MathUtils.random(ScreenEdges.values().length)];
+        int x = 0;
+        int y = 0;
+        float xVec = 0;
+        float yVec = 0;
         int halfRegionHeight = drawable.texture.getRegionHeight() / 2;
         int halfRegionWidth = drawable.texture.getRegionWidth() / 2;
         int graphicsWidth = Asteroids.VIRTUAL_WIDTH;
-        int graphicsHeight =Asteroids.VIRTUAL_HEIGHT;
+        int graphicsHeight = Asteroids.VIRTUAL_HEIGHT;
 
         // Based on spawn, position and movement (always inwards) is generated randomly.
-        if (spawnPosition < 2) {
-            x = MathUtils.random(-halfRegionWidth, graphicsWidth + halfRegionWidth);
-            xVec = MathUtils.random(-100, 101);
-            yVec = MathUtils.random() * 200;
-            if (spawnPosition == 0) {
+        switch (edge){
+            case TOP:
+                x = MathUtils.random(-halfRegionWidth, graphicsWidth + halfRegionWidth);
+                xVec = MathUtils.random(-SECONDARY_OBSTACLE_SPAWN_SPEED, SECONDARY_OBSTACLE_SPAWN_SPEED);
+                yVec = MathUtils.random() * PRIMARY_OBSTACLE_SPAWN_SPEED;
                 y = -halfRegionHeight;
-            } else {
-                yVec *= -1;
+                break;
+            case BOTTOM:
+                x = MathUtils.random(-halfRegionWidth, graphicsWidth + halfRegionWidth);
+                xVec = MathUtils.random(-SECONDARY_OBSTACLE_SPAWN_SPEED, SECONDARY_OBSTACLE_SPAWN_SPEED);
+                yVec = -1 * MathUtils.random() * PRIMARY_OBSTACLE_SPAWN_SPEED;
                 y = graphicsHeight + halfRegionHeight;
-            }
-        } else {
-            y = MathUtils.random(-halfRegionHeight, graphicsHeight + halfRegionHeight);
-            yVec = MathUtils.random(-100, 101);
-            xVec = MathUtils.random() * 200;
-            if (spawnPosition == 2) {
+                break;
+            case LEFT:
+                y = MathUtils.random(-halfRegionHeight, graphicsHeight + halfRegionHeight);
+                yVec = MathUtils.random(-SECONDARY_OBSTACLE_SPAWN_SPEED, SECONDARY_OBSTACLE_SPAWN_SPEED);
+                xVec = MathUtils.random() * PRIMARY_OBSTACLE_SPAWN_SPEED;
                 x = -halfRegionWidth;
-            } else {
+                break;
+            case RIGHT:
+                y = MathUtils.random(-halfRegionHeight, graphicsHeight + halfRegionHeight);
+                yVec = MathUtils.random(-SECONDARY_OBSTACLE_SPAWN_SPEED, SECONDARY_OBSTACLE_SPAWN_SPEED);
+                xVec = -1 * MathUtils.random() * PRIMARY_OBSTACLE_SPAWN_SPEED;
                 x = graphicsWidth + halfRegionWidth;
-                xVec *= -1;
-            }
+                break;
+
         }
         TransformComponent position = entity.getComponent(TransformComponent.class);
         position.position.set(x, y);
@@ -307,5 +317,9 @@ public class GameModel {
         public void onEntityDestroyed(Engine engine, Entity source, Entity target) {
             gameOver();
         }
+    }
+
+    private enum ScreenEdges {
+        TOP, BOTTOM, LEFT, RIGHT
     }
 }
