@@ -46,6 +46,11 @@ public class GameModel {
     public static final int EVENT_GAME_OVER = 1;
     public static final int EVENT_LEVEL_COMPLETE = 2;
 
+    private final static int EDGE_LEFT = 0;
+    private static final int EDGE_TOP = 1;
+    private static final int EDGE_RIGHT = 2;
+    private static final int EDGE_BOTTOM = 3;
+
     public static final int STATE_READY = 0;
     public static final int STATE_RUNNING = 1;
     public static final int STATE_PAUSED = 2;
@@ -201,7 +206,7 @@ public class GameModel {
 
         // TODO: consider not spawning obstacles close to the player
 
-        ScreenEdges edge = ScreenEdges.values()[MathUtils.random(ScreenEdges.values().length)];
+        int edge = MathUtils.random(3);
         int x = 0;
         int y = 0;
         float xVec = 0;
@@ -213,25 +218,25 @@ public class GameModel {
 
         // Based on spawn, position and movement (always inwards) is generated randomly.
         switch (edge){
-            case TOP:
+            case EDGE_TOP:
                 x = MathUtils.random(-halfRegionWidth, graphicsWidth + halfRegionWidth);
                 xVec = MathUtils.random(-SECONDARY_OBSTACLE_SPAWN_SPEED, SECONDARY_OBSTACLE_SPAWN_SPEED);
                 yVec = MathUtils.random() * PRIMARY_OBSTACLE_SPAWN_SPEED;
                 y = -halfRegionHeight;
                 break;
-            case BOTTOM:
+            case EDGE_BOTTOM:
                 x = MathUtils.random(-halfRegionWidth, graphicsWidth + halfRegionWidth);
                 xVec = MathUtils.random(-SECONDARY_OBSTACLE_SPAWN_SPEED, SECONDARY_OBSTACLE_SPAWN_SPEED);
                 yVec = -1 * MathUtils.random() * PRIMARY_OBSTACLE_SPAWN_SPEED;
                 y = graphicsHeight + halfRegionHeight;
                 break;
-            case LEFT:
+            case EDGE_LEFT:
                 y = MathUtils.random(-halfRegionHeight, graphicsHeight + halfRegionHeight);
                 yVec = MathUtils.random(-SECONDARY_OBSTACLE_SPAWN_SPEED, SECONDARY_OBSTACLE_SPAWN_SPEED);
                 xVec = MathUtils.random() * PRIMARY_OBSTACLE_SPAWN_SPEED;
                 x = -halfRegionWidth;
                 break;
-            case RIGHT:
+            case EDGE_RIGHT:
                 y = MathUtils.random(-halfRegionHeight, graphicsHeight + halfRegionHeight);
                 yVec = MathUtils.random(-SECONDARY_OBSTACLE_SPAWN_SPEED, SECONDARY_OBSTACLE_SPAWN_SPEED);
                 xVec = -1 * MathUtils.random() * PRIMARY_OBSTACLE_SPAWN_SPEED;
@@ -317,9 +322,5 @@ public class GameModel {
         public void onEntityDestroyed(Engine engine, Entity source, Entity target) {
             gameOver();
         }
-    }
-
-    private enum ScreenEdges {
-        TOP, BOTTOM, LEFT, RIGHT
     }
 }
