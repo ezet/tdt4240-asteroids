@@ -19,7 +19,7 @@ abstract class BaseEffect implements IEffect {
 
     private boolean applied;
 
-    private float remainingDuration;
+    protected float remainingDuration;
 
     protected abstract float getDuration();
 
@@ -54,6 +54,7 @@ abstract class BaseEffect implements IEffect {
     private void setTexture(Entity entity) {
         if (getEffectTexture() == null) return;
         DrawableComponent drawableComponent = drawableMapper.get(entity);
+        if (drawableComponent.texture == oldRegion) return;
         oldRegion = drawableComponent.texture;
         drawableComponent.texture = getEffectTexture();
     }
