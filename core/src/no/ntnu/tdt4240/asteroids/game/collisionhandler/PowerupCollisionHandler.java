@@ -2,23 +2,15 @@ package no.ntnu.tdt4240.asteroids.game.collisionhandler;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.PooledEngine;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 
-import no.ntnu.tdt4240.asteroids.Assets;
-import no.ntnu.tdt4240.asteroids.Asteroids;
 import no.ntnu.tdt4240.asteroids.entity.component.AnimationComponent;
-import no.ntnu.tdt4240.asteroids.entity.component.DrawableComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.EffectComponent;
-import no.ntnu.tdt4240.asteroids.entity.component.PlayerClass;
 import no.ntnu.tdt4240.asteroids.entity.component.PowerupClass;
 import no.ntnu.tdt4240.asteroids.entity.system.CollisionSystem;
 import no.ntnu.tdt4240.asteroids.service.ServiceLocator;
 
-import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.drawableMapper;
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.playerMapper;
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.powerupMapper;
 
