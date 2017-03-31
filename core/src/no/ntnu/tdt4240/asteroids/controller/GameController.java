@@ -172,7 +172,6 @@ public class GameController extends ScreenAdapter implements World.IGameListener
 
         @Override
         public void onQuitLevel() {
-            //GameController.this.game.setScreen(new MainController(game));
             game.setScreen(parent);
         }
 
@@ -181,6 +180,10 @@ public class GameController extends ScreenAdapter implements World.IGameListener
             Gdx.app.exit();
         }
 
+    @Override
+    public void onSettings() {
+        game.setScreen(new SettingsController(game, this));
+    }
 
 
 }

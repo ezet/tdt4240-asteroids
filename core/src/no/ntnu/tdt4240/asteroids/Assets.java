@@ -46,6 +46,11 @@ public class Assets {
         return assetManager.get("powerup.png");
     }
 
+    public Array<String> getCharacters(){
+        Array a = new Array<String>();
+        a.addAll("black", "blue", "green", "yellow", "red");
+        return a;
+    }
 
     public Array<TextureRegion> getExplosions() {
         Array<TextureRegion> explosions = new Array<>();
