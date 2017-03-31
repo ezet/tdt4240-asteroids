@@ -28,7 +28,7 @@ public class SettingsView extends Stage implements ISettingsView {
     private static final String TAG = MainView.class.getSimpleName();
     private static Viewport viewport = new ScalingViewport(Scaling.stretch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     private final Skin buttonSkin = new Skin(Gdx.files.internal("data/uiskin.json"));
-    private final TextButton backButton = new TextButton("BACK", buttonSkin);
+    private final TextButton backButton = new TextButton("Save Settings", buttonSkin);
     private final TextButton leftButton = new TextButton("Previous", buttonSkin);
     private final TextButton rightButton = new TextButton("Next", buttonSkin);
 
@@ -39,13 +39,13 @@ public class SettingsView extends Stage implements ISettingsView {
     private final TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
     private final Label headlineLablel = new Label("Settings", defaultLabelStyle);
     private final Label changeCharacterLabel = new Label("Change the appearance of your character:", defaultLabelStyle);
-    private Label currentCharacterTextField = new Label(ServiceLocator.gameComponent.getGameSettings().playerAppearance, defaultLabelStyle);
+    private Label currentCharacterTextField = new Label(ServiceLocator.gameComponent.getGameSettings().playerAppearance.replace(".png", ""), defaultLabelStyle);
 
     private final ISettingsController controller;
 
 
     public void setCurrentCharacter(String string){
-        currentCharacterTextField.setText(string);
+        currentCharacterTextField.setText(string.replace(".png",""));
     }
 
     public SettingsView(Batch batch, ISettingsController controller) {
@@ -93,14 +93,14 @@ public class SettingsView extends Stage implements ISettingsView {
         leftButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y){
-                controller.previousCharacter(currentCharacterTextField.getText().toString());
+                controller.previousCharacter();
             }
         });
 
         rightButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y){
-                controller.nextCharacter(currentCharacterTextField.getText().toString());
+                controller.nextCharacter();
             }
         });
     }

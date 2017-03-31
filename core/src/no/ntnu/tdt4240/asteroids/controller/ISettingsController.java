@@ -8,7 +8,7 @@ public interface ISettingsController {
 
     void onQuitLevel();
 
-    void previousCharacter(String current);
+    void previousCharacter();
 
-    void nextCharacter(String current);
+    void nextCharacter();
 }

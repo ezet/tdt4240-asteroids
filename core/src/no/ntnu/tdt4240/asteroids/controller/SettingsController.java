@@ -5,9 +5,9 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.utils.Array;
 import no.ntnu.tdt4240.asteroids.Asteroids;
-import no.ntnu.tdt4240.asteroids.GameSettings;
 import no.ntnu.tdt4240.asteroids.service.ServiceLocator;
 import no.ntnu.tdt4240.asteroids.view.SettingsView;
+
 
 
 public class SettingsController extends ScreenAdapter implements ISettingsController {
@@ -17,7 +17,7 @@ public class SettingsController extends ScreenAdapter implements ISettingsContro
     private final SettingsView view;
     private Screen parent;
 
-    public SettingsController(final Asteroids game,final Screen parent){
+    public SettingsController(final Asteroids game, final Screen parent){
         this.parent = parent;
         this.game = game;
         this.view = new SettingsView(game.getBatch(),this);
@@ -38,18 +38,18 @@ public class SettingsController extends ScreenAdapter implements ISettingsContro
     }
 
     @Override
-    public void previousCharacter(String current) {
+    public void previousCharacter() {
         Array<String> characters = ServiceLocator.gameComponent.getAssetLoader().getCharacters();
-        int index = characters.indexOf(current, false);
+        int index = characters.indexOf(ServiceLocator.gameComponent.getGameSettings().playerAppearance, false);
         if (index == 0) return;
         ServiceLocator.gameComponent.getGameSettings().playerAppearance = characters.get(index-1);
         view.setCurrentCharacter(ServiceLocator.gameComponent.getGameSettings().playerAppearance);
     }
 
     @Override
-    public void nextCharacter(String current) {
+    public void nextCharacter() {
         Array<String> characters = ServiceLocator.gameComponent.getAssetLoader().getCharacters();
-        int index = characters.indexOf(current, false);
+        int index = characters.indexOf(ServiceLocator.gameComponent.getGameSettings().playerAppearance, false);
         if (index == characters.size-1) return;
         ServiceLocator.gameComponent.getGameSettings().playerAppearance = characters.get(index+1);
         view.setCurrentCharacter(ServiceLocator.gameComponent.getGameSettings().playerAppearance);

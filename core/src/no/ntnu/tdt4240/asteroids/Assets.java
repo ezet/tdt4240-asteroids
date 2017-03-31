@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 
+import no.ntnu.tdt4240.asteroids.service.ServiceLocator;
+
 public class Assets {
 
     private AssetManager assetManager;
@@ -17,7 +19,7 @@ public class Assets {
     }
 
     public void loadTextures() {
-        assetManager.load("player.png", Texture.class);
+        assetManager.load("playerBlack.png", Texture.class);
         assetManager.load("powerup.png", Texture.class);
         assetManager.load("invuln.png", Texture.class);
         assetManager.load("obstacle.png", Texture.class);
@@ -30,8 +32,9 @@ public class Assets {
         assetManager.update();
     }
 
-    public Texture getPlayer() {
-        return assetManager.get("player.png");
+
+    public Texture getPlayer(){
+        return assetManager.get(ServiceLocator.gameComponent.getGameSettings().playerAppearance);
     }
 
     public Texture getProjectile() {
@@ -47,9 +50,8 @@ public class Assets {
     }
 
     public Array<String> getCharacters(){
-        Array a = new Array<String>();
-        a.addAll("black", "blue", "green", "yellow", "red");
-        return a;
+        String[] pngs = {"playerBlack.png", "playerBlue.png", "playerGreen.png", "playerYellow.png", "playerRed.png"};
+        return new Array(pngs);
     }
 
     public Array<TextureRegion> getExplosions() {
