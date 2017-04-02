@@ -7,4 +7,6 @@ public interface IMainController {
     void onQuit();
 
     void onTutorial();
+
+    void onMultiplayer();
 }

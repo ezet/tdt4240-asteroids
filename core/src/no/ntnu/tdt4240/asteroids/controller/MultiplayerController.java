@@ -6,34 +6,37 @@ import com.badlogic.gdx.ScreenAdapter;
 import no.ntnu.tdt4240.asteroids.Asteroids;
 import no.ntnu.tdt4240.asteroids.service.ServiceLocator;
 import no.ntnu.tdt4240.asteroids.view.IView;
-import no.ntnu.tdt4240.asteroids.view.MainView;
+import no.ntnu.tdt4240.asteroids.view.MultiplayerView;
 
-public class MainController extends ScreenAdapter implements IMainController {
+public class MultiplayerController extends ScreenAdapter implements IMultiplayerController {
 
     @SuppressWarnings("unused")
-    private static final String TAG = MainController.class.getSimpleName();
+    private static final String TAG = MultiplayerController.class.getSimpleName();
     private final Asteroids game;
-    private final IMainView view;
+    private final MultiplayerView view;
 
 
-    public MainController(final Asteroids game) {
+    public MultiplayerController(final Asteroids game) {
         this.game = game;
-        view = new MainView(game.getBatch(), this);
-
-
-        // TODO: set touch points
+        view = new MultiplayerView(game.getBatch(), this);
     }
 
     @Override
     public void show() {
         super.show();
         Gdx.input.setInputProcessor(view.getInputProcessor());
+        Gdx.app.debug(TAG, "Show");
+
+
     }
 
     @Override
     public void hide() {
         super.hide();
         Gdx.input.setInputProcessor(null);
+        Gdx.app.debug(TAG, "HIDE");
+
+
     }
 
     @Override
@@ -58,24 +61,23 @@ public class MainController extends ScreenAdapter implements IMainController {
     }
 
     @Override
-    public void onPlay() {
-        game.setScreen(new GameController(game, this));
+    public void onQuickgame() {
 
     }
 
     @Override
-    public void onMultiplayer() {
-        game.setScreen(new MultiplayerController(game));
+    public void onHostGame() {
+
     }
 
     @Override
-    public void onQuit() {
-        Gdx.app.exit();
+    public void onBack() {
+        game.setScreen(new MainController(game));
     }
 
     @Override
-    public void onTutorial() {
-        game.setScreen(new TutorialController(game, this));
+    public void onInvitePlayers() {
+        ServiceLocator.getAppComponent().getNetworkService().viewSelectOpponents();
     }
 
 

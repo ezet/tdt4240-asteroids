@@ -21,6 +21,10 @@ public interface INetworkService {
 
     boolean isSignedIn();
 
+    void startQuickGame();
+
+    void viewSelectOpponents();
+
     interface NetworkMessageReceivedListener {
         void onMessageReceived();
     }
