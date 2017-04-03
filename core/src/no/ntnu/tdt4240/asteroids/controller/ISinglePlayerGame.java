@@ -1,5 +1,5 @@
 package no.ntnu.tdt4240.asteroids.controller;
-public interface IGameController {
+public interface ISinglePlayerGame {
 
     void onPause();
 

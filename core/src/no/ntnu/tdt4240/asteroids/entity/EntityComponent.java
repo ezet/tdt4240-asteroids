@@ -24,11 +24,10 @@ public interface EntityComponent {
 
     EffectFactory getEffectFactory();
 
-
     @Scope
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    public @interface GameScope {
+    @interface GameScope {
 
     }
 

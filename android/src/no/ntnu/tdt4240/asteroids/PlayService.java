@@ -1,5 +1,6 @@
 package no.ntnu.tdt4240.asteroids;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -7,7 +8,9 @@ import android.util.Log;
 
 import com.badlogic.gdx.Gdx;
 import com.google.android.gms.games.Games;
+import com.google.android.gms.games.GamesStatusCodes;
 import com.google.android.gms.games.multiplayer.Invitation;
+import com.google.android.gms.games.multiplayer.Multiplayer;
 import com.google.android.gms.games.multiplayer.OnInvitationReceivedListener;
 import com.google.android.gms.games.multiplayer.realtime.RealTimeMessage;
 import com.google.android.gms.games.multiplayer.realtime.RealTimeMessageReceivedListener;
@@ -17,27 +20,40 @@ import com.google.android.gms.games.multiplayer.realtime.RoomStatusUpdateListene
 import com.google.android.gms.games.multiplayer.realtime.RoomUpdateListener;
 import com.google.example.games.basegameutils.GameHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import no.ntnu.tdt4240.asteroids.service.network.INetworkService;
 
-import static no.ntnu.tdt4240.asteroids.AndroidLauncher.RC_WAITING_ROOM;
+import static com.google.android.gms.games.GamesActivityResultCodes.RESULT_INVALID_ROOM;
+import static com.google.android.gms.games.GamesActivityResultCodes.RESULT_LEFT_ROOM;
 
 
 public class PlayService implements INetworkService, RoomUpdateListener, RealTimeMessageReceivedListener, RoomStatusUpdateListener, OnInvitationReceivedListener {
 
+    public static final int RC_ACHIEVEMENTS = 1;
+    public static final int RC_SELECT_PLAYERS = 10000;
+    public static final int RC_LEADERBOARD = 2;
+    public static final int RC_INVITATION_INBOX = 10001;
+    public final static int RC_WAITING_ROOM = 10002;
     private static final String TAG = "PlayService";
-
-
+    private static final int MIN_PLAYERS = 1;
+    private static final int MAX_PLAYERS = 1;
     private final AndroidLauncher activity;
     private final GameHelper gameHelper;
     private String incomingInvitationId;
+    private IGameListener gameListener;
+    private INetworkListener networkListener;
+    private String roomId = null;
 
-    public PlayService(AndroidLauncher activity, GameHelper.GameHelperListener listener) {
+    public PlayService(AndroidLauncher activity) {
         this.activity = activity;
         gameHelper = new GameHelper(activity, GameHelper.CLIENT_GAMES);
         gameHelper.enableDebugLog(true);
         gameHelper.setShowErrorDialogs(true);
+    }
+
+    public void setup(GameHelper.GameHelperListener listener) {
         gameHelper.setup(listener);
     }
 
@@ -96,7 +112,7 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
     @Override
     public void showAchievement() {
         if (isSignedIn()) {
-            activity.startActivityForResult(Games.Achievements.getAchievementsIntent(gameHelper.getApiClient()), AndroidLauncher.RC_ACHIEVEMENTS);
+            activity.startActivityForResult(Games.Achievements.getAchievementsIntent(gameHelper.getApiClient()), RC_ACHIEVEMENTS);
         } else {
             signIn();
         }
@@ -106,7 +122,7 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
     public void showScore() {
         if (isSignedIn()) {
             activity.startActivityForResult(Games.Leaderboards.getLeaderboardIntent(gameHelper.getApiClient(),
-                    activity.getString(R.string.leaderboard_highest)), AndroidLauncher.RC_LEADERBOARD);
+                    activity.getString(R.string.leaderboard_highest)), RC_LEADERBOARD);
         } else {
             signIn();
         }
@@ -114,11 +130,11 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
 
     @Override
     public void sendUnreliableMessageToOthers(byte[] messageData) {
-        Games.RealTimeMultiplayer.sendUnreliableMessageToOthers(gameHelper.getApiClient(), messageData, "roomId");
+        Games.RealTimeMultiplayer.sendUnreliableMessageToOthers(gameHelper.getApiClient(), messageData, roomId);
     }
 
     @Override
-    public void setMessageReceivedListener(NetworkMessageReceivedListener listener) {
+    public void setMessageReceivedListener(IGameListener listener) {
         // TODO: create adapter between NetworkMessageReceivedListener and RealTimeMessageReceivedListener
     }
 
@@ -145,37 +161,142 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
     }
 
     @Override
-    public void viewSelectOpponents() {
-        Intent intent = Games.RealTimeMultiplayer.getSelectOpponentsIntent(gameHelper.getApiClient(), 1, 3);
-//        switchToScreen(R.id.screen_wait);
-        activity.startActivityForResult(intent, AndroidLauncher.RC_SELECT_PLAYERS);
+    public void startSelectOpponents() {
+        Intent intent = Games.RealTimeMultiplayer.getSelectOpponentsIntent(gameHelper.getApiClient(), MIN_PLAYERS, MAX_PLAYERS);
+        activity.startActivityForResult(intent, RC_SELECT_PLAYERS);
     }
 
     @Override
-    public void onRoomCreated(int i, Room room) {
+    public void onRoomCreated(int statusCode, Room room) {
         Log.d(TAG, "onRoomCreated: ");
+        roomId = room.getRoomId();
         showWaitingRoom(room);
     }
 
     @Override
-    public void onJoinedRoom(int i, Room room) {
+    public void onJoinedRoom(int statusCode, Room room) {
         Log.d(TAG, "onJoinedRoom: ");
         showWaitingRoom(room);
     }
 
     @Override
-    public void onLeftRoom(int i, String s) {
+    public void onLeftRoom(int statusCode, String s) {
         Log.d(TAG, "onLeftRoom: ");
     }
 
     @Override
-    public void onRoomConnected(int i, Room room) {
-        Log.d(TAG, "onRoomConnected: ");
+    public void onRoomConnected(int statusCode, Room room) {
+        Log.d(TAG, "onRoomConnected: statusCode: " + statusCode);
+        Log.d(TAG, "onRoomConnected(" + statusCode + ", " + room + ")");
+        if (statusCode != GamesStatusCodes.STATUS_OK) {
+            Log.e(TAG, "*** Error: onRoomConnected, status " + statusCode);
+            activity.showGameError();
+            return;
+        }
     }
 
     @Override
     public void onRealTimeMessageReceived(RealTimeMessage realTimeMessage) {
         Log.d(TAG, "onRealTimeMessageReceived: ");
+        if (gameListener == null) return;
+        byte[] messageData = realTimeMessage.getMessageData();
+        String senderParticipantId = realTimeMessage.getSenderParticipantId();
+        int describeContents = realTimeMessage.describeContents();
+        if (realTimeMessage.isReliable()) {
+            networkListener.onReliableMessageReceived(senderParticipantId, describeContents, messageData);
+        } else {
+            networkListener.onUnreliableMessageReceived(senderParticipantId, describeContents, messageData);
+        }
+    }
+
+    void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case RC_ACHIEVEMENTS:
+                Log.d(TAG, "onActivityResult: RC_ACHIEVEMENTS");
+                break;
+            case RC_LEADERBOARD:
+                Log.d(TAG, "onActivityResult: RC_LEADERBOARD");
+                break;
+            case RC_SELECT_PLAYERS:
+                Log.d(TAG, "onActivityResult: RC_SELECT_PLAYERS");
+                handleSelectPlayersResult(resultCode, data);
+                break;
+            case RC_INVITATION_INBOX:
+                handleInvitationInboxResult(resultCode, data);
+                break;
+            case RC_WAITING_ROOM:
+                handleWaitingRoomResult(resultCode, data);
+                break;
+            default:
+                getGameHelper().onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void handleWaitingRoomResult(int resultCode, Intent data) {
+        Room room = data.getParcelableExtra(Multiplayer.EXTRA_ROOM);
+        Log.d(TAG, "handleWaitingRoomResult: ");
+        switch (resultCode) {
+            case Activity.RESULT_OK:
+                Log.d(TAG, "handleWaitingRoomResult: OK");
+                gameListener.onGameStarting();
+                networkListener.onRoomReady(room.getParticipantIds());
+                break;
+            case Activity.RESULT_CANCELED:
+                Log.d(TAG, "handleWaitingRoomResult: CANCEL");
+                // TODO: 02-Apr-17 leave room
+                break;
+            case RESULT_LEFT_ROOM:
+                // TODO: 02-Apr-17 leave room
+                Log.d(TAG, "handleWaitingRoomResult: LEFT");
+                break;
+            case RESULT_INVALID_ROOM:
+                // TODO: 02-Apr-17 handle invalid room
+                Log.d(TAG, "handleWaitingRoomResult: INVALID");
+                break;
+        }
+    }
+
+    private void handleInvitationInboxResult(int resultCode, Intent data) {
+        Log.d(TAG, "handleInvitationInboxResult: ");
+    }
+
+    private void handleSelectPlayersResult(int response, Intent data) {
+        Log.d(TAG, "handleSelectPlayersResult: ");
+        if (response != Activity.RESULT_OK) {
+            Log.w(TAG, "*** select players UI cancelled, " + response);
+            return;
+        }
+
+        Log.d(TAG, "Select players UI succeeded.");
+
+        // get the invitee list
+        final ArrayList<String> invitees = data.getStringArrayListExtra(Games.EXTRA_PLAYER_IDS);
+        Log.d(TAG, "Invitee count: " + invitees.size());
+
+        // get the automatch criteria
+        Bundle autoMatchCriteria = null;
+        int minAutoMatchPlayers = data.getIntExtra(Multiplayer.EXTRA_MIN_AUTOMATCH_PLAYERS, 0);
+        int maxAutoMatchPlayers = data.getIntExtra(Multiplayer.EXTRA_MAX_AUTOMATCH_PLAYERS, 0);
+        if (minAutoMatchPlayers > 0 || maxAutoMatchPlayers > 0) {
+            autoMatchCriteria = RoomConfig.createAutoMatchCriteria(
+                    minAutoMatchPlayers, maxAutoMatchPlayers, 0);
+            Log.d(TAG, "Automatch criteria: " + autoMatchCriteria);
+        }
+
+        // create the room
+        Log.d(TAG, "Creating room...");
+        RoomConfig.Builder rtmConfigBuilder = RoomConfig.builder(this);
+        rtmConfigBuilder.addPlayersToInvite(invitees);
+        rtmConfigBuilder.setMessageReceivedListener(this);
+        rtmConfigBuilder.setRoomStatusUpdateListener(this);
+        if (autoMatchCriteria != null) {
+            rtmConfigBuilder.setAutoMatchCriteria(autoMatchCriteria);
+        }
+//        switchToScreen(R.id.screen_wait);
+        activity.keepScreenOn();
+//        resetGameVars();
+        Games.RealTimeMultiplayer.create(getGameHelper().getApiClient(), rtmConfigBuilder.build());
+        Log.d(TAG, "Room created, waiting for it to be ready...");
     }
 
     @Override
@@ -212,11 +333,13 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
     @Override
     public void onConnectedToRoom(Room room) {
         Log.d(TAG, "onConnectedToRoom: ");
+        if (roomId == null) roomId = room.getRoomId();
     }
 
     @Override
     public void onDisconnectedFromRoom(Room room) {
         Log.d(TAG, "onDisconnectedFromRoom: ");
+        roomId = null;
     }
 
     @Override
@@ -256,13 +379,25 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
     @Override
     public void onInvitationRemoved(String s) {
         Log.d(TAG, "onInvitationRemoved: ");
+    }
 
+    public void setGameListener(IGameListener gameListener) {
+        this.gameListener = gameListener;
+    }
+
+    @Override
+    public void setNetworkListener(INetworkListener networkListener) {
+        this.networkListener = networkListener;
     }
 
     // Show the waiting room UI to track the progress of other players as they enter the
     // room and get connected.
-    void showWaitingRoom(Room room) {
-        if (room == null) return;
+    private void showWaitingRoom(Room room) {
+        Log.d(TAG, "showWaitingRoom: " + room);
+        if (room == null) {
+            Log.w(TAG, "showWaitingRoom: room is null, returning");
+            return;
+        }
         // minimum number of players required for our game
         // For simplicity, we require everyone to join the game before we start it
         // (this is signaled by Integer.MAX_VALUE).
@@ -273,13 +408,11 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
     }
 
     public void acceptInviteToRoom(String invId) {
-        // accept the invitation
         Log.d(TAG, "Accepting invitation: " + invId);
         RoomConfig.Builder roomConfigBuilder = RoomConfig.builder(this);
         roomConfigBuilder.setInvitationIdToAccept(invId)
                 .setMessageReceivedListener(this)
                 .setRoomStatusUpdateListener(this);
-//        switchToScreen(R.id.screen_wait);
         activity.keepScreenOn();
 //        resetGameVars();
         Games.RealTimeMultiplayer.join(getGameHelper().getApiClient(), roomConfigBuilder.build());
@@ -298,5 +431,6 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
 //            switchToMainScreen();
 //        }
     }
+
 
 }

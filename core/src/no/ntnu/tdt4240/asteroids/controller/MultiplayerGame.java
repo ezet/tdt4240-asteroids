@@ -8,41 +8,42 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
+import java.util.ArrayList;
+
 import no.ntnu.tdt4240.asteroids.Asteroids;
 import no.ntnu.tdt4240.asteroids.entity.component.DrawableComponent;
-import no.ntnu.tdt4240.asteroids.entity.component.HealthComponent;
 import no.ntnu.tdt4240.asteroids.entity.system.AnimationSystem;
 import no.ntnu.tdt4240.asteroids.entity.system.BoundarySystem;
+import no.ntnu.tdt4240.asteroids.entity.system.NetworkSyncSystem;
 import no.ntnu.tdt4240.asteroids.entity.system.RenderSystem;
-import no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers;
 import no.ntnu.tdt4240.asteroids.game.World;
 import no.ntnu.tdt4240.asteroids.input.ControllerInputHandler;
 import no.ntnu.tdt4240.asteroids.service.ServiceLocator;
+import no.ntnu.tdt4240.asteroids.service.network.INetworkService;
 import no.ntnu.tdt4240.asteroids.view.GameView;
 import no.ntnu.tdt4240.asteroids.view.IView;
 import no.ntnu.tdt4240.asteroids.view.widget.GamepadController;
 
-public class GameController extends ScreenAdapter implements World.IGameListener, IGameController {
+public class MultiplayerGame extends ScreenAdapter implements World.IGameListener, ISinglePlayerGame, INetworkService.INetworkListener {
 
     @SuppressWarnings("unused")
-    private static final String TAG = GameController.class.getSimpleName();
+    private static final String TAG = MultiplayerGame.class.getSimpleName();
     private static final boolean DEBUG = false;
     private final Asteroids game;
     private final PooledEngine engine;
-    private IGameView view;
+    private SinglePlayerGame.IGameView view;
     private World world;
     private Screen parent;
 
 
-    GameController(Asteroids game, Screen parent) {
+    public MultiplayerGame(Asteroids game, Screen parent) {
         this.parent = parent;
-
         this.game = game;
+        ServiceLocator.getAppComponent().getNetworkService().setNetworkListener(this);
         engine = setupEngine(game.getBatch());
         ServiceLocator.initializeEntityComponent(engine);
         world = setupModel(engine);
         view = setupView(engine, world);
-        updatePlayerHitpoints();
         world.run();
     }
 
@@ -53,7 +54,7 @@ public class GameController extends ScreenAdapter implements World.IGameListener
         view.resize(width, height);
     }
 
-    private IGameView setupView(PooledEngine engine, World world) {
+    private SinglePlayerGame.IGameView setupView(PooledEngine engine, World world) {
         ControllerInputHandler controllerInputHandler = new ControllerInputHandler(engine);
         controllerInputHandler.setControlledEntity(world.getPlayer());
         view = new GameView(game.getBatch(), this);
@@ -106,6 +107,7 @@ public class GameController extends ScreenAdapter implements World.IGameListener
         engine.addSystem(renderSystem);
         engine.addSystem(new BoundarySystem(Asteroids.VIRTUAL_WIDTH, Asteroids.VIRTUAL_HEIGHT));
         engine.addSystem(new AnimationSystem());
+        engine.addSystem(new NetworkSyncSystem(ServiceLocator.getAppComponent().getNetworkService()));
         return engine;
     }
 
@@ -113,7 +115,7 @@ public class GameController extends ScreenAdapter implements World.IGameListener
     public void handle(World model, int event) {
         switch (event) {
             case World.EVENT_SCORE: {
-                updateScore();
+                onUpdateScore();
                 break;
             }
             case World.EVENT_LEVEL_COMPLETE: {
@@ -124,18 +126,7 @@ public class GameController extends ScreenAdapter implements World.IGameListener
                 onGameOver();
                 break;
             }
-            case World.EVENT_PLAYER_DAMAGE: {
-                updatePlayerHitpoints();
-                break;
-
-            }
         }
-    }
-
-    private void updatePlayerHitpoints() {
-        HealthComponent healthComponent = ComponentMappers.healthMapper.get(world.getPlayer());
-        if (healthComponent != null)
-            view.updateHitpoints(healthComponent.hitPoints);
     }
 
     private void onGameOver() {
@@ -156,38 +147,33 @@ public class GameController extends ScreenAdapter implements World.IGameListener
     }
 
 
-    private void updateScore() {
+    private void onUpdateScore() {
         view.updateScore(world.getScore());
     }
 
     @Override
-    public void onPause() {
-        world.pause();
+    public void onReliableMessageReceived(String senderParticipantId, int describeContents, byte[] messageData) {
+        Gdx.app.debug(TAG, "onReliableMessageReceived: " + senderParticipantId + "," + describeContents);
     }
 
     @Override
-    public void onResume() {
-        // Update the player's texture,
-        // might want to update more things once settings consists of more options.
-        world.getPlayer().getComponent(DrawableComponent.class).texture
-                = new TextureRegion(ServiceLocator.getAppComponent().getAssetLoader().getPlayer());
-        world.run();
+    public void onUnreliableMessageReceived(String senderParticipantId, int describeContents, byte[] messageData) {
+        engine.getSystem(NetworkSyncSystem.class).updateEntity(senderParticipantId, messageData);
     }
 
-    @Override
-    public void onQuitLevel() {
-        game.setScreen(parent);
+    public void addPlayer(String participantId) {
+        world.addMultiPlayer(participantId);
     }
 
-    @Override
-    public void onQuit() {
-        Gdx.app.exit();
-    }
 
     @Override
-    public void onSettings() {
-        game.setScreen(new SettingsController(game, this));
+    public void onRoomReady(ArrayList<String> participantIds) {
+        Gdx.app.debug(TAG, "onRoomReady: ");
+        for (String participantId : participantIds) {
+            addPlayer(participantId);
+        }
     }
+
 
     public interface IGameView extends IView {
 
@@ -200,7 +186,34 @@ public class GameController extends ScreenAdapter implements World.IGameListener
         void setDebug(boolean debug);
 
         void resize(int width, int height);
+    }
 
-        void updateHitpoints(int hitpoints);
+        @Override
+        public void onPause() {
+            world.pause();
+        }
+
+        @Override
+        public void onResume() {
+            // Update the player's texture,
+            // might want to update more things once settings consists of more options.
+            world.getPlayer().getComponent(DrawableComponent.class).texture
+                    = new TextureRegion(ServiceLocator.getAppComponent().getAssetLoader().getPlayer());
+            world.run();
+        }
+
+        @Override
+        public void onQuitLevel() {
+            game.setScreen(parent);
+        }
+
+        @Override
+        public void onQuit() {
+            Gdx.app.exit();
+        }
+
+    @Override
+    public void onSettings() {
+        game.setScreen(new SettingsController(game, this));
     }
 }

@@ -13,7 +13,7 @@ import no.ntnu.tdt4240.asteroids.view.SettingsView;
 
 public class SettingsController extends ScreenAdapter implements ISettingsController {
 
-    private static final String TAG = MainController.class.getSimpleName();
+    private static final String TAG = MainMenu.class.getSimpleName();
     private final Asteroids game;
     private final SettingsView view;
     private Screen parent;

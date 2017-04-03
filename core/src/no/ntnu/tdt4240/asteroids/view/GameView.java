@@ -23,11 +23,11 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
-import no.ntnu.tdt4240.asteroids.controller.GameController;
-import no.ntnu.tdt4240.asteroids.controller.IGameController;
+import no.ntnu.tdt4240.asteroids.controller.SinglePlayerGame;
+import no.ntnu.tdt4240.asteroids.controller.ISinglePlayerGame;
 
 
-public class GameView extends Stage implements GameController.IGameView {
+public class GameView extends Stage implements SinglePlayerGame.IGameView {
 
     private static final String TAG = GameView.class.getSimpleName();
     // TODO: define proper default GUI resources like font, label style etc.
@@ -40,7 +40,7 @@ public class GameView extends Stage implements GameController.IGameView {
         camera.position.set((Asteroids.GUI_VIRTUAL_WIDTH) / 2, (Asteroids.GUI_VIRTUAL_WIDTH) / 2, 0);
     }
 
-    private final IGameController inputHandler;
+    private final ISinglePlayerGame inputHandler;
     private final Table table = new Table();
     private final BitmapFont defaultFont = new BitmapFont();
     private final Label.LabelStyle defaultLabelStyle = new Label.LabelStyle(defaultFont, Color.WHITE);
@@ -55,7 +55,7 @@ public class GameView extends Stage implements GameController.IGameView {
     private Cell mainMenuCell;
 
 
-    public GameView(Batch batch, IGameController inputHandler) {
+    public GameView(Batch batch, ISinglePlayerGame inputHandler) {
         super(guiViewport, batch);
         this.inputHandler = inputHandler;
         this.addActor(table);

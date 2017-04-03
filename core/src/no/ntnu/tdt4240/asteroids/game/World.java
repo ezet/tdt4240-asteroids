@@ -59,6 +59,7 @@ public class World {
     private static final int EDGE_TOP = 1;
     private static final int EDGE_RIGHT = 2;
     private static final int EDGE_BOTTOM = 3;
+    private static final String TAG = World.class.getSimpleName();
     public final Vector<IGameListener> listeners = new Vector<>();
     // TODO: add config
     final PooledEngine engine;
@@ -118,7 +119,6 @@ public class World {
         engine.addSystem(new GravitySystem());
         engine.addSystem(new MovementSystem());
     }
-
 
     public Entity getPlayer() {
         return player;
@@ -282,6 +282,12 @@ public class World {
         if (MathUtils.random() > 1 - gameSettings.powerupSpawnChance) {
             engine.addEntity(createPowerup(entity));
         }
+    }
+
+    public void addMultiPlayer(String participantId) {
+        Entity entity = entityFactory.createMultiPlayer(participantId);
+        engine.addEntity(entity);
+        Gdx.app.debug(TAG, "addMultiPlayer: " + entity);
     }
 
     public interface IGameListener {

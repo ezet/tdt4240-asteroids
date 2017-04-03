@@ -19,11 +19,11 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
-import no.ntnu.tdt4240.asteroids.controller.IMainController;
-import no.ntnu.tdt4240.asteroids.controller.MainController;
+import no.ntnu.tdt4240.asteroids.controller.IMainMenu;
+import no.ntnu.tdt4240.asteroids.controller.MainMenu;
 
 
-public class MainView extends Stage implements MainController.IMainView {
+public class MainView extends Stage implements MainMenu.IMainView {
 
     @SuppressWarnings("unused")
     private static final String TAG = MainView.class.getSimpleName();
@@ -38,11 +38,11 @@ public class MainView extends Stage implements MainController.IMainView {
     private final BitmapFont defaultFont = new BitmapFont();
     private final Label.LabelStyle defaultLabelStyle = new Label.LabelStyle(defaultFont, Color.WHITE);
     private final TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
-    private final IMainController controller;
+    private final IMainMenu controller;
     private boolean active = true;
     // TODO: implement main screen gui
 
-    public MainView(Batch batch, IMainController controller) {
+    public MainView(Batch batch, IMainMenu controller) {
         super(guiViewport, batch);
         this.controller = controller;
         guiViewport.apply(true);

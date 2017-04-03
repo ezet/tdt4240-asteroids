@@ -4,39 +4,32 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
-import no.ntnu.tdt4240.asteroids.service.ServiceLocator;
 import no.ntnu.tdt4240.asteroids.view.IView;
-import no.ntnu.tdt4240.asteroids.view.MultiplayerView;
+import no.ntnu.tdt4240.asteroids.view.MainView;
 
-public class MultiplayerController extends ScreenAdapter implements IMultiplayerController {
+public class MainMenu extends ScreenAdapter implements IMainMenu {
 
     @SuppressWarnings("unused")
-    private static final String TAG = MultiplayerController.class.getSimpleName();
+    private static final String TAG = MainMenu.class.getSimpleName();
     private final Asteroids game;
-    private final MultiplayerView view;
+    private final IMainView view;
 
 
-    public MultiplayerController(final Asteroids game) {
+    public MainMenu(final Asteroids game) {
         this.game = game;
-        view = new MultiplayerView(game.getBatch(), this);
+        view = new MainView(game.getBatch(), this);
     }
 
     @Override
     public void show() {
         super.show();
         Gdx.input.setInputProcessor(view.getInputProcessor());
-        Gdx.app.debug(TAG, "Show");
-
-
     }
 
     @Override
     public void hide() {
         super.hide();
         Gdx.input.setInputProcessor(null);
-        Gdx.app.debug(TAG, "HIDE");
-
-
     }
 
     @Override
@@ -53,7 +46,6 @@ public class MultiplayerController extends ScreenAdapter implements IMultiplayer
 
     private void update(float delta) {
         view.update(delta);
-        // TODO: handle input and process events
     }
 
     private void draw() {
@@ -61,23 +53,24 @@ public class MultiplayerController extends ScreenAdapter implements IMultiplayer
     }
 
     @Override
-    public void onQuickgame() {
+    public void onPlay() {
+        game.setScreen(new SinglePlayerGame(game, this));
 
     }
 
     @Override
-    public void onHostGame() {
-
+    public void onMultiplayer() {
+        game.setScreen(new MultiplayerMenu(game));
     }
 
     @Override
-    public void onBack() {
-        game.setScreen(new MainController(game));
+    public void onQuit() {
+        Gdx.app.exit();
     }
 
     @Override
-    public void onInvitePlayers() {
-        ServiceLocator.getAppComponent().getNetworkService().viewSelectOpponents();
+    public void onTutorial() {
+        game.setScreen(new TutorialController(game, this));
     }
 
 

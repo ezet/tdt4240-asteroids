@@ -1,5 +1,7 @@
 package no.ntnu.tdt4240.asteroids.service.network;
 
+import java.util.ArrayList;
+
 public interface INetworkService {
     void signIn();
 
@@ -17,15 +19,29 @@ public interface INetworkService {
 
     void sendUnreliableMessageToOthers(byte[] messageData);
 
-    void setMessageReceivedListener(NetworkMessageReceivedListener listener);
+    void setMessageReceivedListener(IGameListener listener);
 
     boolean isSignedIn();
 
     void startQuickGame();
 
-    void viewSelectOpponents();
+    void startSelectOpponents();
 
-    interface NetworkMessageReceivedListener {
-        void onMessageReceived();
+    void setGameListener(IGameListener gameListener);
+
+    void setNetworkListener(INetworkListener networkListener);
+
+    interface IGameListener {
+
+        void onGameStarting();
+    }
+
+    interface INetworkListener {
+
+        void onReliableMessageReceived(String senderParticipantId, int describeContents, byte[] messageData);
+
+        void onUnreliableMessageReceived(String senderParticipantId, int describeContents, byte[] messageData);
+
+        void onRoomReady(ArrayList<String> participantIds);
     }
 }

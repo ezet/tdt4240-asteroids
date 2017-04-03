@@ -19,11 +19,11 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
-import no.ntnu.tdt4240.asteroids.controller.IMultiplayerController;
-import no.ntnu.tdt4240.asteroids.controller.MultiplayerController;
+import no.ntnu.tdt4240.asteroids.controller.IMultiplayerMenu;
+import no.ntnu.tdt4240.asteroids.controller.MultiplayerMenu;
 
 
-public class MultiplayerView extends Stage implements MultiplayerController.IMainView {
+public class MultiplayerView extends Stage implements MultiplayerMenu.IMainView {
 
     @SuppressWarnings("unused")
     private static final String TAG = MultiplayerView.class.getSimpleName();
@@ -38,11 +38,11 @@ public class MultiplayerView extends Stage implements MultiplayerController.IMai
     private final BitmapFont defaultFont = new BitmapFont();
     private final Label.LabelStyle defaultLabelStyle = new Label.LabelStyle(defaultFont, Color.WHITE);
     private final TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
-    private final IMultiplayerController controller;
+    private final IMultiplayerMenu controller;
     private boolean active = true;
     // TODO: implement main screen gui
 
-    public MultiplayerView(Batch batch, IMultiplayerController controller) {
+    public MultiplayerView(Batch batch, IMultiplayerMenu controller) {
         super(guiViewport, batch);
         this.controller = controller;
         guiViewport.apply(true);

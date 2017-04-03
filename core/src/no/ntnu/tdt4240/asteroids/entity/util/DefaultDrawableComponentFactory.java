@@ -32,6 +32,11 @@ public class DefaultDrawableComponentFactory implements IDrawableComponentFactor
     }
 
     @Override
+    public DrawableComponent getMultiPlayer() {
+        return getDrawable(PLAYER);
+    }
+
+    @Override
     public DrawableComponent getProjectile() {
         return getDrawable(PROJECTILE);
     }

@@ -20,6 +20,7 @@ public class DamageSystem extends EntitySystem implements CollisionSystem.IColli
 
     public DamageSystem(CollisionSystem collisionSystem) {
         collisionSystem.listeners.add(this);
+        setProcessing(false);
     }
 
     @Override

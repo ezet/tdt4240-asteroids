@@ -24,6 +24,13 @@ public class HealthComponent implements Component, Pool.Poolable {
 
     public Family ignoredEntities;
 
+    public HealthComponent() {
+    }
+
+    public HealthComponent(int hitPoints) {
+        this.hitPoints = hitPoints;
+    }
+
     @Override
     public void reset() {
         hitPoints = 0;
