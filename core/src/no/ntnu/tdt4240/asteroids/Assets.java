@@ -32,7 +32,17 @@ public class Assets {
         assetManager.load("playerBlue.png", Texture.class);
         assetManager.load("playerGreen.png", Texture.class);
         assetManager.load("playerYellow.png", Texture.class);
+        assetManager.load("data/touchBackground.png", Texture.class);
+        assetManager.load("data/touchKnob.png", Texture.class);
         assetManager.update();
+    }
+
+    public Texture getTouchBackground() {
+        return assetManager.get("data/touchBackground.png");
+    }
+
+    public Texture getTouchKnob() {
+        return assetManager.get("data/touchKnob.png");
     }
 
 

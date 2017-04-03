@@ -40,9 +40,10 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
         this.parent = parent;
         this.game = game;
         ServiceLocator.getAppComponent().getNetworkService().setNetworkListener(this);
-        engine = setupEngine(game.getBatch());
+        engine = new PooledEngine();
         ServiceLocator.initializeEntityComponent(engine);
-        world = setupModel(engine);
+        setupEngine(game.getBatch());
+        world = setupWorld(engine);
         view = setupView(engine, world);
         world.run();
     }
@@ -77,7 +78,7 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
 
     }
 
-    private World setupModel(PooledEngine engine) {
+    private World setupWorld(PooledEngine engine) {
         world = new World(engine);
         world.listeners.add(this);
         world.initialize();
@@ -100,15 +101,13 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
         view.draw();
     }
 
-    private PooledEngine setupEngine(SpriteBatch batch) {
-        PooledEngine engine = new PooledEngine();
+    private void setupEngine(SpriteBatch batch) {
         RenderSystem renderSystem = new RenderSystem(batch);
         renderSystem.setDebug(DEBUG);
         engine.addSystem(renderSystem);
         engine.addSystem(new BoundarySystem(Asteroids.VIRTUAL_WIDTH, Asteroids.VIRTUAL_HEIGHT));
         engine.addSystem(new AnimationSystem());
         engine.addSystem(new NetworkSyncSystem(ServiceLocator.getAppComponent().getNetworkService()));
-        return engine;
     }
 
     @Override
@@ -158,7 +157,7 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
 
     @Override
     public void onUnreliableMessageReceived(String senderParticipantId, int describeContents, byte[] messageData) {
-        engine.getSystem(NetworkSyncSystem.class).updateEntity(senderParticipantId, messageData);
+        engine.getSystem(NetworkSyncSystem.class).processPackage(senderParticipantId, messageData);
     }
 
     public void addPlayer(String participantId) {

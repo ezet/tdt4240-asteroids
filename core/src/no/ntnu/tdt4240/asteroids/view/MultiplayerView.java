@@ -111,9 +111,6 @@ public class MultiplayerView extends Stage implements MultiplayerMenu.IMainView 
         }
     }
 
-
-
-
     @Override
     public void draw() {
 //        Batch batch = getBatch();

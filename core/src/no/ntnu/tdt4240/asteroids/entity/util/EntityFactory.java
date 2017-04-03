@@ -8,6 +8,7 @@ import javax.inject.Inject;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
 import no.ntnu.tdt4240.asteroids.GameSettings;
+import no.ntnu.tdt4240.asteroids.controller.MultiplayerGame;
 import no.ntnu.tdt4240.asteroids.entity.component.BoundaryComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.BulletClass;
 import no.ntnu.tdt4240.asteroids.entity.component.CircularBoundsComponent;
@@ -32,6 +33,7 @@ public class EntityFactory {
 
     private static final Family POWERUP_COLLISION_IGNORE = Family.one(ObstacleClass.class, BulletClass.class).get();
     private static final Family BULLET_COLLISION_IGNORE = Family.one(BulletClass.class, PlayerClass.class).get();
+    private static final Family OPPONENT_BULLET_COLLISION_IGNORE = Family.one(BulletClass.class, MultiPlayerClass.class).get();
     private static final Family OBSTACLE_COLLISION_IGNORE = Family.one(ObstacleClass.class).get();
     private static final CollisionSystem.ICollisionHandler bulletCollisionHandler = new BulletCollisionHandler();
     private static final PowerupCollisionHandler POWERUP_COLLISION_HANDLER = new PowerupCollisionHandler();
@@ -59,7 +61,7 @@ public class EntityFactory {
         player.add(new GravityComponent(gameSettings.playerGravity));
         player.add(new CircularBoundsComponent());
         player.add(new ShootComponent());
-        player.add(new HealthComponent(999));
+        player.add(new HealthComponent(Integer.MAX_VALUE));
         player.add(new NetworkSyncComponent());
         player.add(new BoundaryComponent(BoundaryComponent.MODE_WRAP));
         player.add(drawableComponentFactory.getPlayer());
@@ -83,6 +85,23 @@ public class EntityFactory {
 
     public Entity createPlayerBullet() {
         Entity entity = engine.createEntity();
+        entity.add(engine.createComponent(BulletClass.class));
+        entity.add(engine.createComponent(TransformComponent.class));
+        entity.add(engine.createComponent(MovementComponent.class));
+        entity.add(engine.createComponent(CircularBoundsComponent.class));
+        entity.add(engine.createComponent(DamageComponent.class));
+        entity.add(drawableComponentFactory.getProjectile());
+        CollisionComponent collisionComponent = engine.createComponent(CollisionComponent.class);
+        collisionComponent.collisionHandler = bulletCollisionHandler;
+        collisionComponent.ignoredEntities = BULLET_COLLISION_IGNORE;
+        entity.add(collisionComponent);
+        return entity;
+    }
+
+
+    public Entity createOpponentBullet() {
+        Entity entity = engine.createEntity();
+        entity.add(engine.createComponent(MultiPlayerClass.class));
         entity.add(engine.createComponent(BulletClass.class));
         entity.add(engine.createComponent(TransformComponent.class));
         entity.add(engine.createComponent(MovementComponent.class));

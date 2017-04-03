@@ -130,6 +130,8 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
 
     @Override
     public void sendUnreliableMessageToOthers(byte[] messageData) {
+        // TODO: 03-Apr-17 do this properly
+        if (roomId == null) return;
         Games.RealTimeMultiplayer.sendUnreliableMessageToOthers(gameHelper.getApiClient(), messageData, roomId);
     }
 
@@ -197,8 +199,10 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
 
     @Override
     public void onRealTimeMessageReceived(RealTimeMessage realTimeMessage) {
-        Log.d(TAG, "onRealTimeMessageReceived: ");
-        if (gameListener == null) return;
+        if (networkListener == null) {
+            Gdx.app.debug(TAG, "onRealTimeMessageReceived: NetworkListener is null");
+            return;
+        }
         byte[] messageData = realTimeMessage.getMessageData();
         String senderParticipantId = realTimeMessage.getSenderParticipantId();
         int describeContents = realTimeMessage.describeContents();
@@ -239,7 +243,10 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
             case Activity.RESULT_OK:
                 Log.d(TAG, "handleWaitingRoomResult: OK");
                 gameListener.onGameStarting();
-                networkListener.onRoomReady(room.getParticipantIds());
+                String currentPlayerId = Games.Players.getCurrentPlayerId(gameHelper.getApiClient());
+                ArrayList<String> participantIds = room.getParticipantIds();
+                participantIds.remove(currentPlayerId);
+                networkListener.onRoomReady(participantIds);
                 break;
             case Activity.RESULT_CANCELED:
                 Log.d(TAG, "handleWaitingRoomResult: CANCEL");
@@ -414,7 +421,6 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
                 .setMessageReceivedListener(this)
                 .setRoomStatusUpdateListener(this);
         activity.keepScreenOn();
-//        resetGameVars();
         Games.RealTimeMultiplayer.join(getGameHelper().getApiClient(), roomConfigBuilder.build());
     }
 

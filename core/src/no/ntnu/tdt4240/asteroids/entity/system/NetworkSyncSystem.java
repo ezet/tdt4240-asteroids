@@ -2,6 +2,7 @@ package no.ntnu.tdt4240.asteroids.entity.system;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.ashley.utils.ImmutableArray;
@@ -9,10 +10,13 @@ import com.badlogic.gdx.Gdx;
 
 import java.nio.ByteBuffer;
 
+import no.ntnu.tdt4240.asteroids.entity.component.BulletClass;
 import no.ntnu.tdt4240.asteroids.entity.component.MovementComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.MultiPlayerClass;
 import no.ntnu.tdt4240.asteroids.entity.component.NetworkSyncComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.TransformComponent;
+import no.ntnu.tdt4240.asteroids.entity.util.EntityFactory;
+import no.ntnu.tdt4240.asteroids.service.ServiceLocator;
 import no.ntnu.tdt4240.asteroids.service.network.INetworkService;
 
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.movementMapper;
@@ -20,32 +24,55 @@ import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.multiPlayer
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.transformMapper;
 
 
-public class NetworkSyncSystem extends IteratingSystem {
+public class NetworkSyncSystem extends IteratingSystem implements EntityListener {
 
     private static final Family FAMILY = Family.all(NetworkSyncComponent.class, TransformComponent.class, MovementComponent.class).get();
     private static final String TAG = NetworkSyncSystem.class.getSimpleName();
+    private static final byte MOVE = 1;
+    private static final byte BULLET = 2;
+    private static final byte OBSTACLE = 3;
     private INetworkService networkService;
     private ImmutableArray<Entity> players;
+    private EntityFactory entityFactory;
 
     public NetworkSyncSystem(INetworkService networkService) {
         super(FAMILY);
         this.networkService = networkService;
+        this.entityFactory = ServiceLocator.getEntityComponent().getEntityFactory();
     }
 
     @Override
     public void addedToEngine(Engine engine) {
         super.addedToEngine(engine);
         players = engine.getEntitiesFor(Family.all(MultiPlayerClass.class).get());
+        engine.addEntityListener(Family.all(BulletClass.class).exclude(MultiPlayerClass.class).get(), this);
+    }
+
+    public void processPackage(String playerId, byte[] messageData) {
+        ByteBuffer wrap = ByteBuffer.wrap(messageData);
+        byte b = wrap.get();
+        switch (b) {
+            case MOVE:
+                updateEntity(playerId, wrap);
+                break;
+            case BULLET:
+                bullet(playerId, wrap);
+                break;
+            default:
+                Gdx.app.debug(TAG, "processPackage: DEFAULT");
+        }
     }
 
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
         TransformComponent transform = transformMapper.get(entity);
         MovementComponent movement = movementMapper.get(entity);
-        ByteBuffer buffer = ByteBuffer.allocate(4 * 7);
+        ByteBuffer buffer = ByteBuffer.allocate(4 * 8 + 1);
+        buffer.put(MOVE);
         buffer.putFloat(transform.position.x);
         buffer.putFloat(transform.position.y);
-        buffer.putFloat(transform.rotation.angle());
+        buffer.putFloat(transform.rotation.x);
+        buffer.putFloat(transform.rotation.y);
         buffer.putFloat(movement.velocity.x);
         buffer.putFloat(movement.velocity.y);
         buffer.putFloat(movement.acceleration.x);
@@ -53,7 +80,7 @@ public class NetworkSyncSystem extends IteratingSystem {
         networkService.sendUnreliableMessageToOthers(buffer.array());
     }
 
-    public void updateEntity(String playerId, byte[] messageData) {
+    private void updateEntity(String playerId, ByteBuffer wrap) {
         Entity entity = null;
         for (Entity player : players) {
             MultiPlayerClass multiPlayerClass = multiPlayerMapper.get(player);
@@ -63,17 +90,53 @@ public class NetworkSyncSystem extends IteratingSystem {
             }
         }
         if (entity == null) {
+            Gdx.app.debug(TAG, "updateEntity: NULL");
             return;
         }
-        ByteBuffer wrap = ByteBuffer.wrap(messageData);
         TransformComponent transformComponent = transformMapper.get(entity);
         MovementComponent movement = movementMapper.get(entity);
         transformComponent.position.x = wrap.getFloat();
         transformComponent.position.y = wrap.getFloat();
-        transformComponent.rotation.setAngle(wrap.getFloat());
+        transformComponent.rotation.x = wrap.getFloat();
+        transformComponent.rotation.y = wrap.getFloat();
         movement.velocity.x = wrap.getFloat();
         movement.velocity.y = wrap.getFloat();
         movement.acceleration.x = wrap.getFloat();
         movement.acceleration.y = wrap.getFloat();
     }
+
+
+    private void bullet(String playerId, ByteBuffer wrap) {
+        Entity entity = entityFactory.createOpponentBullet();
+        MultiPlayerClass multiPlayerClass = multiPlayerMapper.get(entity);
+        multiPlayerClass.id = playerId;
+        TransformComponent transform = transformMapper.get(entity);
+        MovementComponent movement = movementMapper.get(entity);
+
+        transform.position.x = wrap.getFloat();
+        transform.position.y = wrap.getFloat();
+        movement.velocity.x = wrap.getFloat();
+        movement.velocity.y = wrap.getFloat();
+        getEngine().addEntity(entity);
+    }
+
+
+    @Override
+    public void entityAdded(Entity entity) {
+        TransformComponent transform = transformMapper.get(entity);
+        MovementComponent movement = movementMapper.get(entity);
+        ByteBuffer buffer = ByteBuffer.allocate(4 * 4 + 1);
+        buffer.put(BULLET);
+        buffer.putFloat(transform.position.x);
+        buffer.putFloat(transform.position.y);
+        buffer.putFloat(movement.velocity.x);
+        buffer.putFloat(movement.velocity.y);
+        networkService.sendUnreliableMessageToOthers(buffer.array());
+    }
+
+    @Override
+    public void entityRemoved(Entity entity) {
+
+    }
+
 }

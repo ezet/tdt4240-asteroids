@@ -20,13 +20,15 @@ public class Asteroids extends Game implements INetworkService.IGameListener {
     private SpriteBatch batch;
     private Assets assets;
     private static final String TAG = Asteroids.class.getSimpleName();
+    private INetworkService networkService;
 
     Asteroids(INetworkService networkService) {
-        ServiceLocator.initializeAppComponent(networkService);
+        this.networkService = networkService;
     }
 
     @Override
     public void create() {
+        ServiceLocator.initializeAppComponent(networkService);
         ServiceLocator.getAppComponent().getNetworkService().setGameListener(this);
         Gdx.app.setLogLevel(Application.LOG_DEBUG);
         assets = ServiceLocator.getAppComponent().getAssetLoader();
