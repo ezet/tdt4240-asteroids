@@ -10,10 +10,14 @@ import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.multiplayer.Multiplayer;
+import com.google.android.gms.games.multiplayer.realtime.Room;
 import com.google.android.gms.games.multiplayer.realtime.RoomConfig;
 import com.google.example.games.basegameutils.GameHelper;
 
 import java.util.ArrayList;
+
+import static com.google.android.gms.games.GamesActivityResultCodes.RESULT_INVALID_ROOM;
+import static com.google.android.gms.games.GamesActivityResultCodes.RESULT_LEFT_ROOM;
 
 public class AndroidLauncher extends AndroidApplication implements GameHelper.GameHelperListener {
 
@@ -85,20 +89,36 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
     }
 
     private void handleWaitingRoomResult(int resultCode, Intent data) {
+        switch (resultCode) {
+            case RESULT_OK:
+                Log.d(TAG, "handleWaitingRoomResult: OK");
+                // TODO: 02-Apr-17 start game
+                break;
+            case RESULT_CANCELED:
+                Log.d(TAG, "handleWaitingRoomResult: CANCEL");
+                // TODO: 02-Apr-17 leave room
+                break;
+            case RESULT_LEFT_ROOM:
+                // TODO: 02-Apr-17 leave room
+                Log.d(TAG, "handleWaitingRoomResult: LEFT");
+                break;
+            case RESULT_INVALID_ROOM:
+                // TODO: 02-Apr-17 handle invalid room
+                Log.d(TAG, "handleWaitingRoomResult: INVALID");
+                break;
+        }
+        Room room = data.getParcelableExtra(Multiplayer.EXTRA_ROOM);
         Log.d(TAG, "handleWaitingRoomResult: ");
-
     }
 
     private void handleInvitationInboxResult(int resultCode, Intent data) {
         Log.d(TAG, "handleInvitationInboxResult: ");
-
     }
 
     private void handleSelectPlayersResult(int response, Intent data) {
         Log.d(TAG, "handleSelectPlayersResult: ");
         if (response != Activity.RESULT_OK) {
             Log.w(TAG, "*** select players UI cancelled, " + response);
-//            switchToMainScreen();
             return;
         }
 
@@ -144,7 +164,12 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
     @Override
     public void onSignInSucceeded() {
         Log.d(TAG, "onSignInSucceeded: ");
+        if (playService.getGameHelper().hasInvitation()) {
+            playService.acceptInviteToRoom(playService.getGameHelper().getInvitationId());
+        }
     }
+
+
 
     // Sets the flag to keep this screen on. It's recommended to do that during
     // the
@@ -159,5 +184,8 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
     void stopKeepingScreenOn() {
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
+
+
+
 
 }

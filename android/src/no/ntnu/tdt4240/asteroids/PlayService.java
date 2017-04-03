@@ -154,11 +154,13 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
     @Override
     public void onRoomCreated(int i, Room room) {
         Log.d(TAG, "onRoomCreated: ");
+        showWaitingRoom(room);
     }
 
     @Override
     public void onJoinedRoom(int i, Room room) {
         Log.d(TAG, "onJoinedRoom: ");
+        showWaitingRoom(room);
     }
 
     @Override
@@ -248,12 +250,39 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
 //                invitation.getInviter().getDisplayName() + " " +
 //                        getString(R.string.is_inviting_you));
 //        switchToScreen(mCurScreen); // This will show the invitation popup
+
     }
 
     @Override
     public void onInvitationRemoved(String s) {
         Log.d(TAG, "onInvitationRemoved: ");
 
+    }
+
+    // Show the waiting room UI to track the progress of other players as they enter the
+    // room and get connected.
+    void showWaitingRoom(Room room) {
+        if (room == null) return;
+        // minimum number of players required for our game
+        // For simplicity, we require everyone to join the game before we start it
+        // (this is signaled by Integer.MAX_VALUE).
+        final int MIN_PLAYERS = Integer.MAX_VALUE;
+        Intent i = Games.RealTimeMultiplayer.getWaitingRoomIntent(gameHelper.getApiClient(), room, MIN_PLAYERS);
+        // show waiting room UI
+        activity.startActivityForResult(i, RC_WAITING_ROOM);
+    }
+
+    public void acceptInviteToRoom(String invId) {
+        // accept the invitation
+        Log.d(TAG, "Accepting invitation: " + invId);
+        RoomConfig.Builder roomConfigBuilder = RoomConfig.builder(this);
+        roomConfigBuilder.setInvitationIdToAccept(invId)
+                .setMessageReceivedListener(this)
+                .setRoomStatusUpdateListener(this);
+//        switchToScreen(R.id.screen_wait);
+        activity.keepScreenOn();
+//        resetGameVars();
+        Games.RealTimeMultiplayer.join(getGameHelper().getApiClient(), roomConfigBuilder.build());
     }
 
     // Leave the room.
@@ -270,16 +299,4 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
 //        }
     }
 
-    // Show the waiting room UI to track the progress of other players as they enter the
-    // room and get connected.
-    void showWaitingRoom(Room room) {
-        // minimum number of players required for our game
-        // For simplicity, we require everyone to join the game before we start it
-        // (this is signaled by Integer.MAX_VALUE).
-        final int MIN_PLAYERS = Integer.MAX_VALUE;
-        Intent i = Games.RealTimeMultiplayer.getWaitingRoomIntent(gameHelper.getApiClient(), room, MIN_PLAYERS);
-
-        // show waiting room UI
-        activity.startActivityForResult(i, RC_WAITING_ROOM);
-    }
 }
