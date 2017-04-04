@@ -8,13 +8,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
 import no.ntnu.tdt4240.asteroids.entity.component.DrawableComponent;
 import no.ntnu.tdt4240.asteroids.entity.system.AnimationSystem;
 import no.ntnu.tdt4240.asteroids.entity.system.BoundarySystem;
-import no.ntnu.tdt4240.asteroids.entity.system.NetworkSyncSystem;
+import no.ntnu.tdt4240.asteroids.entity.system.NetworkSystem;
 import no.ntnu.tdt4240.asteroids.entity.system.RenderSystem;
 import no.ntnu.tdt4240.asteroids.game.World;
 import no.ntnu.tdt4240.asteroids.input.ControllerInputHandler;
@@ -107,7 +107,7 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
         engine.addSystem(renderSystem);
         engine.addSystem(new BoundarySystem(Asteroids.VIRTUAL_WIDTH, Asteroids.VIRTUAL_HEIGHT));
         engine.addSystem(new AnimationSystem());
-        engine.addSystem(new NetworkSyncSystem(ServiceLocator.getAppComponent().getNetworkService()));
+        engine.addSystem(new NetworkSystem(ServiceLocator.getAppComponent().getNetworkService()));
     }
 
     @Override
@@ -157,16 +157,16 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
 
     @Override
     public void onUnreliableMessageReceived(String senderParticipantId, int describeContents, byte[] messageData) {
-        engine.getSystem(NetworkSyncSystem.class).processPackage(senderParticipantId, messageData);
+        engine.getSystem(NetworkSystem.class).processPackage(senderParticipantId, messageData);
     }
 
-    public void addPlayer(String participantId) {
+    private void addPlayer(String participantId) {
         world.addMultiPlayer(participantId);
     }
 
 
     @Override
-    public void onRoomReady(ArrayList<String> participantIds) {
+    public void onRoomReady(List<String> participantIds) {
         Gdx.app.debug(TAG, "onRoomReady: ");
         for (String participantId : participantIds) {
             addPlayer(participantId);

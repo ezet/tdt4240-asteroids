@@ -1,15 +1,21 @@
 package no.ntnu.tdt4240.asteroids.entity.component;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
+
+import java.util.HashSet;
 
 import no.ntnu.tdt4240.asteroids.entity.system.CollisionSystem;
 
 public class CollisionComponent implements Component, Pool.Poolable {
 
     public CollisionSystem.ICollisionHandler collisionHandler;
+
+    public final HashSet<Entity> handledCollisions = new HashSet<>();
 
     public Family ignoredEntities;
 
@@ -26,5 +32,6 @@ public class CollisionComponent implements Component, Pool.Poolable {
         ignoredEntities = null;
         preCollisionVelocity = null;
         preCollisionPosition.setZero();
+        handledCollisions.clear();
     }
 }

@@ -1,6 +1,7 @@
 package no.ntnu.tdt4240.asteroids.service.network;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public interface INetworkService {
     void signIn();
@@ -33,7 +34,7 @@ public interface INetworkService {
 
     interface IGameListener {
 
-        void onGameStarting();
+        void onMultiplayerGameStarting();
     }
 
     interface INetworkListener {
@@ -42,6 +43,6 @@ public interface INetworkService {
 
         void onUnreliableMessageReceived(String senderParticipantId, int describeContents, byte[] messageData);
 
-        void onRoomReady(ArrayList<String> participantIds);
+        void onRoomReady(List<String> participantIds);
     }
 }

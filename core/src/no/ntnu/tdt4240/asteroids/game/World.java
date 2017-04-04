@@ -63,10 +63,9 @@ public class World {
     public final Vector<IGameListener> listeners = new Vector<>();
     // TODO: add config
     final PooledEngine engine;
-    private final DamageSystem.IEntityDestroyedListener playerDestroyedHandler = new PlayerDestroyedHandler(this);
     private final Entity player;
-    private final DamageSystem.IEntityDestroyedListener obstacleDestroyedHandler = new ObstacleDestroyedHandler(this);
-    private final World.PlayerDamageTakenHandler playerDamageTakenHandler = new PlayerDamageTakenHandler(this);
+    private final DamageSystem.IDamageHandler obstacleDamageHandler = new ObstacleDamageHandler(this);
+    private final PlayerDamageHandler playerDamageHandler = new PlayerDamageHandler(this);
     @Inject
     IGameSettings gameSettings;
     @Inject
@@ -141,8 +140,7 @@ public class World {
         entityFactory.initPlayer(player);
         HealthComponent healthComponent = healthMapper.get(player);
         if (healthComponent != null) {
-            healthComponent.entityDestroyedHandler = playerDestroyedHandler;
-            healthComponent.damageTakenHandler = playerDamageTakenHandler;
+            healthComponent.damageHandler = playerDamageHandler;
         }
         engine.addEntity(player);
     }
@@ -166,11 +164,12 @@ public class World {
     private Entity createPowerup(Entity source) {
         MovementComponent sourceMovement = movementMapper.get(source);
         TransformComponent sourceTransform = transformMapper.get(source);
+        if (sourceMovement == null || sourceTransform == null) return null;
         Entity entity = entityFactory.createPowerup(getEffect());
-        TransformComponent transformComponent = transformMapper.get(entity);
-        transformComponent.position.set(sourceTransform.position);
         MovementComponent movementComponent = movementMapper.get(entity);
         movementComponent.velocity.set(sourceMovement.velocity);
+        TransformComponent transformComponent = transformMapper.get(entity);
+        transformComponent.position.set(sourceTransform.position);
         return entity;
     }
 
@@ -182,7 +181,7 @@ public class World {
         Entity entity = entityFactory.createObstacle();
         DrawableComponent drawable = drawableMapper.get(entity);
         HealthComponent healthComponent = healthMapper.get(entity);
-        healthComponent.entityDestroyedHandler = obstacleDestroyedHandler;
+        healthComponent.damageHandler = obstacleDamageHandler;
 
         int edge = MathUtils.random(3);
         int x = 0;
@@ -280,12 +279,15 @@ public class World {
 
     private void spawnPowerup(Entity entity) {
         if (MathUtils.random() > 1 - gameSettings.getPowerupSpawnChance()) {
-            engine.addEntity(createPowerup(entity));
+            Entity powerup = createPowerup(entity);
+            if (powerup != null) engine.addEntity(powerup);
         }
     }
 
     public void addMultiPlayer(String participantId) {
         Entity entity = entityFactory.createMultiPlayer(participantId);
+        HealthComponent healthComponent = healthMapper.get(entity);
+        healthComponent.damageHandler = new OpponentDamageHandler(this, participantId);
         engine.addEntity(entity);
         Gdx.app.debug(TAG, "addMultiPlayer: " + entity);
     }
@@ -317,12 +319,12 @@ public class World {
         }
     }
 
-    private static class PlayerDamageTakenHandler implements DamageSystem.IDamageTakenListener {
+    private static class PlayerDamageHandler implements DamageSystem.IDamageHandler {
 
-        private static final String TAG = PlayerDamageTakenHandler.class.getSimpleName();
+        private static final String TAG = PlayerDamageHandler.class.getSimpleName();
         private World world;
 
-        public PlayerDamageTakenHandler(World world) {
+        public PlayerDamageHandler(World world) {
             this.world = world;
         }
 
@@ -330,16 +332,6 @@ public class World {
         public void onDamageTaken(Engine engine, Entity entity, int damageTaken) {
             Gdx.app.debug(TAG, "onDamageTaken: ");
             world.notifyListeners(EVENT_PLAYER_DAMAGE);
-
-        }
-    }
-
-    private static class PlayerDestroyedHandler implements DamageSystem.IEntityDestroyedListener {
-
-        private World world;
-
-        public PlayerDestroyedHandler(World world) {
-            this.world = world;
         }
 
         @Override
@@ -348,26 +340,62 @@ public class World {
         }
     }
 
-    private static class ObstacleDestroyedHandler implements DamageSystem.IEntityDestroyedListener {
+    private static class OpponentDamageHandler implements DamageSystem.IDamageHandler {
+
+        private static final String TAG = PlayerDamageHandler.class.getSimpleName();
+        private World world;
+        private String playerId;
+
+        public OpponentDamageHandler(World world, String playerId) {
+            this.world = world;
+            this.playerId = playerId;
+        }
+
+        @Override
+        public void onDamageTaken(Engine engine, Entity entity, int damageTaken) {
+            Gdx.app.debug(TAG, "onDamageTaken: Opponent");
+//            world.notifyListeners(EVENT_PLAYER_DAMAGE);
+        }
+
+        @Override
+        public void onEntityDestroyed(Engine engine, Entity source, Entity target) {
+            AnimationComponent animation = new AnimationComponent();
+            // TODO: 31-Mar-17 Figure out why this line sometime causes a null reference
+            animation.removeOnAnimationComplete = true;
+            animation.frames.addAll(ServiceLocator.getAppComponent().getAnimationFactory().getObstacleDestroyedAnimation());
+            target.add(animation);
+            world.increaseScore();
+            world.audioManager.playExplosion();
+            target.remove(CollisionComponent.class);
+            target.remove(MovementComponent.class);
+        }
+    }
+
+    private static class ObstacleDamageHandler implements DamageSystem.IDamageHandler {
 
         private World world;
 
-        public ObstacleDestroyedHandler(World world) {
+        public ObstacleDamageHandler(World world) {
             this.world = world;
+        }
+
+        @Override
+        public void onDamageTaken(Engine engine, Entity entity, int damageTaken) {
+
         }
 
         @Override
         public void onEntityDestroyed(Engine engine, Entity source, Entity target) {
             world.spawnPowerup(target);
             AnimationComponent animation = new AnimationComponent();
-            target.remove(CollisionComponent.class);
             // TODO: 31-Mar-17 Figure out why this line sometime causes a null reference
-            target.remove(MovementComponent.class);
             animation.removeOnAnimationComplete = true;
             animation.frames.addAll(ServiceLocator.getAppComponent().getAnimationFactory().getObstacleDestroyedAnimation());
             target.add(animation);
             world.increaseScore();
             world.audioManager.playExplosion();
+            target.remove(CollisionComponent.class);
+            target.remove(MovementComponent.class);
         }
     }
 }

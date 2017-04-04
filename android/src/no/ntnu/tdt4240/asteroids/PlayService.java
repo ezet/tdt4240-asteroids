@@ -242,7 +242,7 @@ public class PlayService implements INetworkService, RoomUpdateListener, RealTim
         switch (resultCode) {
             case Activity.RESULT_OK:
                 Log.d(TAG, "handleWaitingRoomResult: OK");
-                gameListener.onGameStarting();
+                gameListener.onMultiplayerGameStarting();
                 String currentPlayerId = Games.Players.getCurrentPlayerId(gameHelper.getApiClient());
                 ArrayList<String> participantIds = room.getParticipantIds();
                 participantIds.remove(currentPlayerId);

@@ -15,7 +15,7 @@ import no.ntnu.tdt4240.asteroids.entity.component.EffectComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.GravityComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.HealthComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.MovementComponent;
-import no.ntnu.tdt4240.asteroids.entity.component.MultiPlayerClass;
+import no.ntnu.tdt4240.asteroids.entity.component.NetworkSyncComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.ObstacleClass;
 import no.ntnu.tdt4240.asteroids.entity.component.PlayerClass;
 import no.ntnu.tdt4240.asteroids.entity.component.PowerupClass;
@@ -41,8 +41,8 @@ public abstract class ComponentMappers {
     public static final ComponentMapper<DamageComponent> damageMapper = ComponentMapper.getFor(DamageComponent.class);
     public static final ComponentMapper<ShootComponent> shootMapper = ComponentMapper.getFor(ShootComponent.class);
     public static final ComponentMapper<PlayerClass> playerMapper = ComponentMapper.getFor(PlayerClass.class);
-    public static final ComponentMapper<MultiPlayerClass> multiPlayerMapper = ComponentMapper.getFor(MultiPlayerClass.class);
     public static final ComponentMapper<PowerupClass> powerupMapper = ComponentMapper.getFor(PowerupClass.class);
+    public static final ComponentMapper<NetworkSyncComponent> networkSyncMapper = ComponentMapper.getFor(NetworkSyncComponent.class);
 
     public static class BoundsComponentMapperWrapper {
 

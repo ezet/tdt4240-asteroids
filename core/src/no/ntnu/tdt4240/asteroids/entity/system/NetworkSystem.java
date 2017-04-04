@@ -10,32 +10,33 @@ import com.badlogic.gdx.Gdx;
 
 import java.nio.ByteBuffer;
 
-import no.ntnu.tdt4240.asteroids.entity.component.BulletClass;
 import no.ntnu.tdt4240.asteroids.entity.component.MovementComponent;
-import no.ntnu.tdt4240.asteroids.entity.component.MultiPlayerClass;
+import no.ntnu.tdt4240.asteroids.entity.component.NetworkAddComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.NetworkSyncComponent;
+import no.ntnu.tdt4240.asteroids.entity.component.PlayerClass;
 import no.ntnu.tdt4240.asteroids.entity.component.TransformComponent;
 import no.ntnu.tdt4240.asteroids.entity.util.EntityFactory;
 import no.ntnu.tdt4240.asteroids.service.ServiceLocator;
 import no.ntnu.tdt4240.asteroids.service.network.INetworkService;
 
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.movementMapper;
-import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.multiPlayerMapper;
+import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.networkSyncMapper;
+import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.playerMapper;
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.transformMapper;
 
 
-public class NetworkSyncSystem extends IteratingSystem implements EntityListener {
+public class NetworkSystem extends IteratingSystem implements EntityListener {
 
     private static final Family FAMILY = Family.all(NetworkSyncComponent.class, TransformComponent.class, MovementComponent.class).get();
-    private static final String TAG = NetworkSyncSystem.class.getSimpleName();
+    private static final String TAG = NetworkSystem.class.getSimpleName();
     private static final byte MOVE = 1;
     private static final byte BULLET = 2;
     private static final byte OBSTACLE = 3;
     private INetworkService networkService;
-    private ImmutableArray<Entity> players;
+    private ImmutableArray<Entity> syncEntities;
     private EntityFactory entityFactory;
 
-    public NetworkSyncSystem(INetworkService networkService) {
+    public NetworkSystem(INetworkService networkService) {
         super(FAMILY);
         this.networkService = networkService;
         this.entityFactory = ServiceLocator.getEntityComponent().getEntityFactory();
@@ -44,8 +45,8 @@ public class NetworkSyncSystem extends IteratingSystem implements EntityListener
     @Override
     public void addedToEngine(Engine engine) {
         super.addedToEngine(engine);
-        players = engine.getEntitiesFor(Family.all(MultiPlayerClass.class).get());
-        engine.addEntityListener(Family.all(BulletClass.class).exclude(MultiPlayerClass.class).get(), this);
+        syncEntities = engine.getEntitiesFor(Family.all(NetworkSyncComponent.class).get());
+        engine.addEntityListener(Family.all(NetworkAddComponent.class).get(), this);
     }
 
     public void processPackage(String playerId, byte[] messageData) {
@@ -65,6 +66,7 @@ public class NetworkSyncSystem extends IteratingSystem implements EntityListener
 
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
+        NetworkSyncComponent networkSyncComponent = networkSyncMapper.get(entity);
         TransformComponent transform = transformMapper.get(entity);
         MovementComponent movement = movementMapper.get(entity);
         ByteBuffer buffer = ByteBuffer.allocate(4 * 8 + 1);
@@ -82,9 +84,9 @@ public class NetworkSyncSystem extends IteratingSystem implements EntityListener
 
     private void updateEntity(String playerId, ByteBuffer wrap) {
         Entity entity = null;
-        for (Entity player : players) {
-            MultiPlayerClass multiPlayerClass = multiPlayerMapper.get(player);
-            if (multiPlayerClass.id.equals(playerId)) {
+        for (Entity player : syncEntities) {
+            PlayerClass playerClass = playerMapper.get(player);
+            if (playerClass.id.equals(playerId)) {
                 entity = player;
                 break;
             }
@@ -107,12 +109,9 @@ public class NetworkSyncSystem extends IteratingSystem implements EntityListener
 
 
     private void bullet(String playerId, ByteBuffer wrap) {
-        Entity entity = entityFactory.createOpponentBullet();
-        MultiPlayerClass multiPlayerClass = multiPlayerMapper.get(entity);
-        multiPlayerClass.id = playerId;
+        Entity entity = entityFactory.createOpponentBullet(playerId);
         TransformComponent transform = transformMapper.get(entity);
         MovementComponent movement = movementMapper.get(entity);
-
         transform.position.x = wrap.getFloat();
         transform.position.y = wrap.getFloat();
         movement.velocity.x = wrap.getFloat();

@@ -63,8 +63,8 @@ public class Asteroids extends Game implements INetworkService.IGameListener {
     }
 
     @Override
-    public void onGameStarting() {
-        Gdx.app.debug(TAG, "onGameStarting: ");
+    public void onMultiplayerGameStarting() {
+        Gdx.app.debug(TAG, "onMultiplayerGameStarting: ");
         ServiceLocator.getAppComponent().getAssetLoader().getAssetManager().finishLoading();
         setScreen(new MultiplayerGame(this, new MainMenu(this)));
     }

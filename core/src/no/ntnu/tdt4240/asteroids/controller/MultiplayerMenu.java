@@ -3,6 +3,10 @@ package no.ntnu.tdt4240.asteroids.controller;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+
 import no.ntnu.tdt4240.asteroids.Asteroids;
 import no.ntnu.tdt4240.asteroids.service.ServiceLocator;
 import no.ntnu.tdt4240.asteroids.view.IView;
@@ -55,7 +59,9 @@ public class MultiplayerMenu extends ScreenAdapter implements IMultiplayerMenu {
 
     @Override
     public void onQuickgame() {
-        game.setScreen(new MultiplayerGame(game, this));
+        MultiplayerGame screen = new MultiplayerGame(game, this);
+        game.setScreen(screen);
+        screen.onRoomReady(Collections.singletonList("test"));
     }
 
     @Override

@@ -34,63 +34,79 @@ public class CollisionSystem extends IteratingSystem {
         if (entity.isScheduledForRemoval()) return;
         CollisionComponent thisCollision = collisionMapper.get(entity);
         BoundsComponent bounds = boundsMapper.get(entity);
-        MovementComponent entityMovement = movementMapper.get(entity);
         if (thisCollision == null || bounds == null) return;
-//        thisCollision.preCollisionVelocity = null;
         for (Entity other : getEntities()) {
+            if (thisCollision.handledCollisions.contains(other)) continue;
+            if (entity == other) continue;
             if (other.isScheduledForRemoval()) continue;
             if (thisCollision.ignoredEntities != null
                     && thisCollision.ignoredEntities.matches(other)) continue;
-            if (entity == other) continue;
             BoundsComponent otherBounds = boundsMapper.get(other);
+            CollisionComponent otherCollision = collisionMapper.get(other);
+            if (otherBounds == null || otherCollision == null) continue;
+            otherCollision.handledCollisions.add(entity);
             if (bounds.overlaps(otherBounds)) {
-                CollisionComponent otherCollision = collisionMapper.get(other);
-                MovementComponent otherMovement = movementMapper.get(other);
-                Vector2 thisVelocityTmp = new Vector2(entityMovement.velocity);
-                Vector2 otherVelocity = otherMovement.velocity;
-
-
-                // More realistic algorithm
-//                Circle thisCircle = (Circle) bounds.getBounds();
-//                Circle otherCircle = (Circle) otherBounds.getBounds();
-//                double distance = Math.sqrt(Math.pow((thisCircle.x) - (otherCircle.x), 2)
-//                        + Math.pow((thisCircle.y) - (otherCircle.y), 2));
-//                double normalizedX = (otherCircle.x - thisCircle.x) / distance;
-//                double normalizedY = (otherCircle.y - thisCircle.y) / distance;
-//                double p = 2 * (thisVelocity.x * normalizedX + thisVelocity.y * normalizedY - otherVelocity.x * normalizedX - otherVelocity.y * normalizedY) /
-//                        (thisCollision.mass + otherCollision.mass);
-//                entityMovement.velocity.x = (float) (entityMovement.velocity.x - p * thisCollision.mass * normalizedX);
-//                entityMovement.velocity.y = (float) (entityMovement.velocity.y - p * thisCollision.mass * normalizedY);
-//
-//                otherMovement.velocity.x = (float) (otherMovement.velocity.x - p * otherCollision.mass * normalizedX);
-//                otherMovement.velocity.y = (float) (otherMovement.velocity.y - p * otherCollision.mass * normalizedY);
-
-                // Simple algorithm
-                entityMovement.velocity.x = entityMovement.velocity.x * (thisCollision.mass - otherCollision.mass) + (2 * otherCollision.mass * otherVelocity.x) / (thisCollision.mass + otherCollision.mass);
-                entityMovement.velocity.y = entityMovement.velocity.y * (thisCollision.mass - otherCollision.mass) + (2 * otherCollision.mass * otherVelocity.y) / (thisCollision.mass + otherCollision.mass);
-                otherMovement.velocity.x = otherMovement.velocity.x * (otherCollision.mass - thisCollision.mass) + (2 * thisCollision.mass * thisVelocityTmp.x) / (otherCollision.mass + thisCollision.mass);
-                otherMovement.velocity.y = otherMovement.velocity.y * (otherCollision.mass - thisCollision.mass) + (2 * thisCollision.mass * thisVelocityTmp.y) / (otherCollision.mass + thisCollision.mass);
-
-//                while (bounds.overlaps(otherBounds)) {
-//                    getEngine().getSystem(MovementSystem.class).processEntity(entity, deltaTime);
-//                    getEngine().getSystem(BoundsSystem.class).processEntity(entity, deltaTime);
-//                    getEngine().getSystem(MovementSystem.class).processEntity(other, deltaTime);
-//                    getEngine().getSystem(BoundsSystem.class).processEntity(other, deltaTime);
-//                }
-                revertPosition(entity);
-                revertPosition(other);
-
+                boolean validEvent = true;
                 if (thisCollision.collisionHandler != null) {
-                    thisCollision.collisionHandler.onCollision((PooledEngine) getEngine(), entity, other);
+                    validEvent = thisCollision.collisionHandler.onCollision((PooledEngine) getEngine(), entity, other);
                 }
-                notifyListeners(entity, other);
-                if (otherCollision.collisionHandler != null) {
-                    otherCollision.collisionHandler.onCollision((PooledEngine) getEngine(), other, entity);
+                if (validEvent && otherCollision.collisionHandler != null)
+                    validEvent = otherCollision.collisionHandler.onCollision((PooledEngine) getEngine(), other, entity);
+
+                if (validEvent) {
+                    notifyListeners(entity, other);
+                    notifyListeners(other, entity);
                 }
-                notifyListeners(other, entity);
             }
         }
+        thisCollision.handledCollisions.clear();
         bounds.getCenter(thisCollision.preCollisionPosition);
+    }
+
+    private void doCollision(Entity entity, Entity other) {
+        CollisionComponent thisCollision = collisionMapper.get(entity);
+        MovementComponent entityMovement = movementMapper.get(entity);
+        CollisionComponent otherCollision = collisionMapper.get(other);
+        MovementComponent otherMovement = movementMapper.get(other);
+        Vector2 thisVelocityTmp = new Vector2(entityMovement.velocity);
+        Vector2 otherVelocity = otherMovement.velocity;
+
+        entityMovement.velocity.x = entityMovement.velocity.x * (thisCollision.mass - otherCollision.mass) + (2 * otherCollision.mass * otherVelocity.x) / (thisCollision.mass + otherCollision.mass);
+        entityMovement.velocity.y = entityMovement.velocity.y * (thisCollision.mass - otherCollision.mass) + (2 * otherCollision.mass * otherVelocity.y) / (thisCollision.mass + otherCollision.mass);
+        otherMovement.velocity.x = otherMovement.velocity.x * (otherCollision.mass - thisCollision.mass) + (2 * thisCollision.mass * thisVelocityTmp.x) / (otherCollision.mass + thisCollision.mass);
+        otherMovement.velocity.y = otherMovement.velocity.y * (otherCollision.mass - thisCollision.mass) + (2 * thisCollision.mass * thisVelocityTmp.y) / (otherCollision.mass + thisCollision.mass);
+        revertPosition(entity);
+        revertPosition(other);
+    }
+
+    //         More realistic algorithm
+    private void doCollision2(Entity entity, Entity other) {
+        CollisionComponent thisCollision = collisionMapper.get(entity);
+        MovementComponent entityMovement = movementMapper.get(entity);
+        CollisionComponent otherCollision = collisionMapper.get(other);
+        MovementComponent otherMovement = movementMapper.get(other);
+        Vector2 thisVelocityTmp = new Vector2(entityMovement.velocity);
+        Vector2 otherVelocity = otherMovement.velocity;
+        BoundsComponent bounds = boundsMapper.get(entity);
+        BoundsComponent otherBounds = boundsMapper.get(other);
+
+
+        Circle thisCircle = (Circle) bounds.getBounds();
+        Circle otherCircle = (Circle) otherBounds.getBounds();
+        double distance = Math.sqrt(Math.pow((thisCircle.x) - (otherCircle.x), 2)
+                + Math.pow((thisCircle.y) - (otherCircle.y), 2));
+        double normalizedX = (otherCircle.x - thisCircle.x) / distance;
+        double normalizedY = (otherCircle.y - thisCircle.y) / distance;
+        double p = 2 * (thisVelocityTmp.x * normalizedX + thisVelocityTmp.y * normalizedY - otherVelocity.x * normalizedX - otherVelocity.y * normalizedY) /
+                (thisCollision.mass + otherCollision.mass);
+        entityMovement.velocity.x = (float) (entityMovement.velocity.x - p * thisCollision.mass * normalizedX);
+        entityMovement.velocity.y = (float) (entityMovement.velocity.y - p * thisCollision.mass * normalizedY);
+
+        otherMovement.velocity.x = (float) (otherMovement.velocity.x - p * otherCollision.mass * normalizedX);
+        otherMovement.velocity.y = (float) (otherMovement.velocity.y - p * otherCollision.mass * normalizedY);
+
+        revertPosition(entity);
+        revertPosition(other);
     }
 
     private void notifyListeners(Entity source, Entity target) {
@@ -110,6 +126,6 @@ public class CollisionSystem extends IteratingSystem {
     }
 
     public interface ICollisionHandler {
-        void onCollision(PooledEngine engine, Entity source, Entity target);
+        boolean onCollision(PooledEngine engine, Entity source, Entity target);
     }
 }

@@ -18,18 +18,10 @@ public class HealthComponent implements Component, Pool.Poolable {
 
     public int hitPoints = 0;
 
-    public DamageSystem.IDamageTakenListener damageTakenHandler;
+    public DamageSystem.IDamageHandler damageHandler;
 
-    public DamageSystem.IEntityDestroyedListener entityDestroyedHandler;
 
     public Family ignoredEntities;
-
-    public HealthComponent() {
-    }
-
-    public HealthComponent(int hitPoints) {
-        this.hitPoints = hitPoints;
-    }
 
     @Override
     public void reset() {
