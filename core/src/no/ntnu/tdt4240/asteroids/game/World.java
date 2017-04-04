@@ -15,7 +15,7 @@ import java.util.Vector;
 import javax.inject.Inject;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
-import no.ntnu.tdt4240.asteroids.GameSettings;
+import no.ntnu.tdt4240.asteroids.service.settings.IGameSettings;
 import no.ntnu.tdt4240.asteroids.entity.component.AnimationComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.CircularBoundsComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.CollisionComponent;
@@ -68,7 +68,7 @@ public class World {
     private final DamageSystem.IEntityDestroyedListener obstacleDestroyedHandler = new ObstacleDestroyedHandler(this);
     private final World.PlayerDamageTakenHandler playerDamageTakenHandler = new PlayerDamageTakenHandler(this);
     @Inject
-    GameSettings gameSettings;
+    IGameSettings gameSettings;
     @Inject
     EntityFactory entityFactory = ServiceLocator.getEntityComponent().getEntityFactory();
     private final EntityListener resetListener = new EntityListener() {
@@ -97,7 +97,7 @@ public class World {
         player = new Entity();
         setupEngineSystems();
         registerEffects();
-        gameSettings = ServiceLocator.getAppComponent().getGameSettings();
+        gameSettings = ServiceLocator.getEntityComponent().getGameSettings();
     }
 
     @SuppressWarnings("unchecked")
@@ -148,16 +148,16 @@ public class World {
     }
 
     private void spawnObstacles(int currentObstacles) {
-        int attempts = GameSettings.minObstacles - currentObstacles;
+        int attempts = gameSettings.getMinObstacles() - currentObstacles;
         int current = currentObstacles;
         while (attempts > 0) {
             engine.addEntity(createObstacle());
             --attempts;
             ++current;
         }
-        attempts = GameSettings.maxObstacles - current;
+        attempts = gameSettings.getMaxObstacles() - current;
         for (int i = 0; i < attempts; ++i) {
-            if (MathUtils.random() > 1 - GameSettings.obstacleSpawnChance) {
+            if (MathUtils.random() > 1 - gameSettings.getObstacleSpawnChance()) {
                 engine.addEntity(createObstacle());
             }
         }
@@ -193,41 +193,41 @@ public class World {
         int halfRegionWidth = drawable.texture.getRegionWidth() / 2;
         int graphicsWidth = Asteroids.VIRTUAL_WIDTH;
         int graphicsHeight = Asteroids.VIRTUAL_HEIGHT;
-        int halfSpeed = gameSettings.obstacleMaxSpeed / 2;
+        int halfSpeed = gameSettings.getObstacleMaxSpeed() / 2;
 
         // Based on spawn, position and movement (always inwards) is generated randomly.
         switch (edge) {
             case EDGE_TOP:
                 x = MathUtils.random(-halfRegionWidth, graphicsWidth + halfRegionWidth);
                 xVec = MathUtils.random(-halfSpeed, halfSpeed);
-                yVec = MathUtils.random() * gameSettings.obstacleMaxSpeed;
+                yVec = MathUtils.random() * gameSettings.getObstacleMaxSpeed();
                 y = -halfRegionHeight;
                 break;
             case EDGE_BOTTOM:
                 x = MathUtils.random(-halfRegionWidth, graphicsWidth + halfRegionWidth);
                 xVec = MathUtils.random(-halfSpeed, halfSpeed);
-                yVec = -1 * MathUtils.random() * gameSettings.obstacleMaxSpeed;
+                yVec = -1 * MathUtils.random() * gameSettings.getObstacleMaxSpeed();
                 y = graphicsHeight + halfRegionHeight;
                 break;
             case EDGE_LEFT:
                 y = MathUtils.random(-halfRegionHeight, graphicsHeight + halfRegionHeight);
                 yVec = MathUtils.random(-halfSpeed, halfSpeed);
-                xVec = MathUtils.random() * gameSettings.obstacleMaxSpeed;
+                xVec = MathUtils.random() * gameSettings.getObstacleMaxSpeed();
                 x = -halfRegionWidth;
                 break;
             case EDGE_RIGHT:
                 y = MathUtils.random(-halfRegionHeight, graphicsHeight + halfRegionHeight);
                 yVec = MathUtils.random(-halfSpeed, halfSpeed);
-                xVec = -1 * MathUtils.random() * gameSettings.obstacleMaxSpeed;
+                xVec = -1 * MathUtils.random() * gameSettings.getObstacleMaxSpeed();
                 x = graphicsWidth + halfRegionWidth;
                 break;
         }
 
         Circle playerBounds = (Circle) player.getComponent(CircularBoundsComponent.class).getBounds();
         if (playerBounds.radius > 0) {
-            Circle spawnCircle = new Circle(playerBounds.x, playerBounds.y, playerBounds.radius * GameSettings.PLAYER_SAFETY_RADIUS);
+            Circle spawnCircle = new Circle(playerBounds.x, playerBounds.y, playerBounds.radius + gameSettings.getPlayerNoSpawnRadius());
             if (spawnCircle.contains(x, y)) {
-                // The obstacle is spawning too close, compute again!
+                // TODO: 04-Apr-17 remove recursion
                 return createObstacle();
             }
         }
@@ -279,7 +279,7 @@ public class World {
     }
 
     private void spawnPowerup(Entity entity) {
-        if (MathUtils.random() > 1 - gameSettings.powerupSpawnChance) {
+        if (MathUtils.random() > 1 - gameSettings.getPowerupSpawnChance()) {
             engine.addEntity(createPowerup(entity));
         }
     }

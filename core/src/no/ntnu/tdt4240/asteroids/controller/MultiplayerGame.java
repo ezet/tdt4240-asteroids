@@ -41,7 +41,7 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
         this.game = game;
         ServiceLocator.getAppComponent().getNetworkService().setNetworkListener(this);
         engine = new PooledEngine();
-        ServiceLocator.initializeEntityComponent(engine);
+        ServiceLocator.initializeMultiPlayerEntityComponent(engine);
         setupEngine(game.getBatch());
         world = setupWorld(engine);
         view = setupView(engine, world);

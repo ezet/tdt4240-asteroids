@@ -7,8 +7,7 @@ import com.badlogic.ashley.core.PooledEngine;
 import javax.inject.Inject;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
-import no.ntnu.tdt4240.asteroids.GameSettings;
-import no.ntnu.tdt4240.asteroids.controller.MultiplayerGame;
+import no.ntnu.tdt4240.asteroids.service.settings.IGameSettings;
 import no.ntnu.tdt4240.asteroids.entity.component.BoundaryComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.BulletClass;
 import no.ntnu.tdt4240.asteroids.entity.component.CircularBoundsComponent;
@@ -39,10 +38,10 @@ public class EntityFactory {
     private static final PowerupCollisionHandler POWERUP_COLLISION_HANDLER = new PowerupCollisionHandler();
     private final PooledEngine engine;
     private final IDrawableComponentFactory drawableComponentFactory;
-    private final GameSettings gameSettings;
+    private final IGameSettings gameSettings;
 
     @Inject
-    public EntityFactory(PooledEngine engine, IDrawableComponentFactory drawableComponentFactory, GameSettings gameSettings) {
+    public EntityFactory(PooledEngine engine, IDrawableComponentFactory drawableComponentFactory, IGameSettings gameSettings) {
         this.engine = engine;
         this.drawableComponentFactory = drawableComponentFactory;
         this.gameSettings = gameSettings;
@@ -56,12 +55,12 @@ public class EntityFactory {
         int positionY = Asteroids.VIRTUAL_HEIGHT / 2;
         player.add(new TransformComponent(positionX, positionY, rotationX, rotationY));
         MovementComponent movementComponent = new MovementComponent();
-        movementComponent.accelerationScalar = gameSettings.accelerationScalar;
+        movementComponent.accelerationScalar = gameSettings.getAccelerationScalar();
         player.add(movementComponent);
-        player.add(new GravityComponent(gameSettings.playerGravity));
+        player.add(new GravityComponent(gameSettings.getPlayerGravity()));
         player.add(new CircularBoundsComponent());
         player.add(new ShootComponent());
-        player.add(new HealthComponent(Integer.MAX_VALUE));
+        player.add(new HealthComponent(3));
         player.add(new NetworkSyncComponent());
         player.add(new BoundaryComponent(BoundaryComponent.MODE_WRAP));
         player.add(drawableComponentFactory.getPlayer());
@@ -79,7 +78,7 @@ public class EntityFactory {
         entity.add(new BoundaryComponent());
         entity.add(new CircularBoundsComponent());
         entity.add(drawableComponentFactory.getMultiPlayer());
-        entity.add(new GravityComponent(gameSettings.playerGravity));
+        entity.add(new GravityComponent(gameSettings.getPlayerGravity()));
         return entity;
     }
 
@@ -110,7 +109,7 @@ public class EntityFactory {
         entity.add(drawableComponentFactory.getProjectile());
         CollisionComponent collisionComponent = engine.createComponent(CollisionComponent.class);
         collisionComponent.collisionHandler = bulletCollisionHandler;
-        collisionComponent.ignoredEntities = BULLET_COLLISION_IGNORE;
+        collisionComponent.ignoredEntities = OPPONENT_BULLET_COLLISION_IGNORE;
         entity.add(collisionComponent);
         return entity;
     }

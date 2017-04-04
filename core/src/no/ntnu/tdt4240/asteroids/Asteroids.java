@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import no.ntnu.tdt4240.asteroids.controller.MainMenu;
 import no.ntnu.tdt4240.asteroids.controller.MultiplayerGame;
-import no.ntnu.tdt4240.asteroids.service.ServiceLocator;
+import no.ntnu.tdt4240.asteroids.service.*;
 import no.ntnu.tdt4240.asteroids.service.network.INetworkService;
 
 public class Asteroids extends Game implements INetworkService.IGameListener {
@@ -18,7 +18,7 @@ public class Asteroids extends Game implements INetworkService.IGameListener {
     public static final int GUI_VIRTUAL_WIDTH = 640;
     public static final int GUI_VIRTUAL_HEIGHT = 360;
     private SpriteBatch batch;
-    private Assets assets;
+    private no.ntnu.tdt4240.asteroids.service.Assets assets;
     private static final String TAG = Asteroids.class.getSimpleName();
     private INetworkService networkService;
 

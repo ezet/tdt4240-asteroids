@@ -39,7 +39,7 @@ public class SinglePlayerGame extends ScreenAdapter implements World.IGameListen
 
         this.game = game;
         engine = setupEngine(game.getBatch());
-        ServiceLocator.initializeEntityComponent(engine);
+        ServiceLocator.initializeSinglePlayerEntityComponent(engine);
         world = setupModel(engine);
         view = setupView(engine, world);
         updatePlayerHitpoints();

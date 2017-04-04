@@ -87,8 +87,8 @@ public class GameView extends Stage implements SinglePlayerGame.IGameView {
         verticalGroup.space(20);
         verticalGroup.addActor(resume);
         verticalGroup.addActor(settings);
-        verticalGroup.addActor(quit);
         verticalGroup.addActor(quitToMenu);
+        verticalGroup.addActor(quit);
         addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
