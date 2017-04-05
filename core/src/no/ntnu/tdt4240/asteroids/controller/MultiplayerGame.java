@@ -1,17 +1,25 @@
 package no.ntnu.tdt4240.asteroids.controller;
 
+import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.core.PooledEngine;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.actions.DelayAction;
+import com.badlogic.gdx.utils.Timer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
+import no.ntnu.tdt4240.asteroids.entity.component.CollisionComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.DrawableComponent;
+import no.ntnu.tdt4240.asteroids.entity.component.PlayerClass;
 import no.ntnu.tdt4240.asteroids.entity.system.AnimationSystem;
 import no.ntnu.tdt4240.asteroids.entity.system.BoundarySystem;
 import no.ntnu.tdt4240.asteroids.entity.system.NetworkSystem;
@@ -29,12 +37,12 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
     @SuppressWarnings("unused")
     private static final String TAG = MultiplayerGame.class.getSimpleName();
     private static final boolean DEBUG = false;
+    private static final long SCORE_SCREEN_DURATION = 10000;
     private final Asteroids game;
     private final PooledEngine engine;
     private SinglePlayerGame.IGameView view;
     private World world;
     private Screen parent;
-
 
     public MultiplayerGame(Asteroids game, Screen parent) {
         this.parent = parent;
@@ -130,11 +138,17 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
 
     private void onGameOver() {
         world.stop();
-        // TODO: show game over screen
-//        stage.setScore(0);
-//        world.initialize();
-//        world.run();
-        game.setScreen(parent);
+        game.setScreen(new ScoreScreenController(game, parent, getPlayersAndScores()));
+    }
+    private List<String> getPlayersAndScores(){
+        ImmutableArray<Entity> entities = engine.getEntitiesFor(Family.all(PlayerClass.class).get());
+        List<String> playersAndScores = new ArrayList<>();
+        for (Entity e: entities){
+            // Is it possible to have the score of each player be within that component?
+            playersAndScores.add(e.getComponent(PlayerClass.class).id);
+        }
+        // SORT ON SCORE WHEN POSSIBLE, then return
+        return playersAndScores;
     }
 
     private void onLevelComplete() {

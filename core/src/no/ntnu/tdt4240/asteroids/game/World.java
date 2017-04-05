@@ -15,6 +15,7 @@ import java.util.Vector;
 import javax.inject.Inject;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
+import no.ntnu.tdt4240.asteroids.entity.component.PlayerClass;
 import no.ntnu.tdt4240.asteroids.service.settings.IGameSettings;
 import no.ntnu.tdt4240.asteroids.entity.component.AnimationComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.CircularBoundsComponent;
@@ -40,6 +41,7 @@ import no.ntnu.tdt4240.asteroids.service.audio.AudioManager;
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.drawableMapper;
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.healthMapper;
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.movementMapper;
+import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.playerMapper;
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.transformMapper;
 
 @SuppressWarnings("WeakerAccess")
@@ -368,6 +370,12 @@ public class World {
             world.audioManager.playExplosion();
             target.remove(CollisionComponent.class);
             target.remove(MovementComponent.class);
+            if (target.getComponent(PlayerClass.class) != null){
+                ImmutableArray<Entity> entities = engine.getEntitiesFor(Family.all(PlayerClass.class, CollisionComponent.class).get());
+                if (entities.size() < 2){
+                    world.notifyListeners(EVENT_GAME_OVER);
+                }
+            }
         }
     }
 
