@@ -108,7 +108,7 @@ public class World {
     }
 
     private void increaseScore() {
-        score++;
+        player.getComponent(PlayerClass.class).incrementScore();
         notifyListeners(EVENT_SCORE);
     }
 

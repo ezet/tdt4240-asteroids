@@ -5,13 +5,23 @@ import com.badlogic.gdx.utils.Pool;
 
 public class PlayerClass implements Component, Pool.Poolable {
 
-    public String id = "";
+    public String id;
+    private int score = 0;
 
     public PlayerClass(String id) {
         this.id = id;
     }
 
     public PlayerClass() {
+        this.id = "noID";
+    }
+
+    public void incrementScore(){
+        score++;
+    }
+
+    public int getScore(){
+        return score;
     }
 
     @Override

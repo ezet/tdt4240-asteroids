@@ -8,6 +8,7 @@ import javax.inject.Inject;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
 import no.ntnu.tdt4240.asteroids.entity.component.NetworkAddComponent;
+import no.ntnu.tdt4240.asteroids.service.ServiceLocator;
 import no.ntnu.tdt4240.asteroids.service.settings.IGameSettings;
 import no.ntnu.tdt4240.asteroids.entity.component.BoundaryComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.BulletClass;
@@ -87,9 +88,12 @@ public class EntityFactory {
         return entity;
     }
 
-    public Entity createPlayerBullet() {
+    public Entity createBullet(String playerId) {
+        // Single method needed as long as all players have unique IDs
         Entity entity = engine.createEntity();
-        entity.add(engine.createComponent(BulletClass.class));
+        BulletClass bullet = engine.createComponent(BulletClass.class);
+        bullet.id = playerId;
+        entity.add(bullet);
         entity.add(engine.createComponent(TransformComponent.class));
         entity.add(engine.createComponent(MovementComponent.class));
         entity.add(engine.createComponent(CircularBoundsComponent.class));
@@ -99,23 +103,6 @@ public class EntityFactory {
         CollisionComponent collisionComponent = engine.createComponent(CollisionComponent.class);
         collisionComponent.collisionHandler = bulletCollisionHandler;
         collisionComponent.ignoredEntities = BULLET_COLLISION_IGNORE;
-        entity.add(collisionComponent);
-        return entity;
-    }
-
-    public Entity createOpponentBullet(String playerId) {
-        Entity entity = engine.createEntity();
-        BulletClass bullet = engine.createComponent(BulletClass.class);
-        bullet.id = playerId;
-        entity.add(bullet);
-        entity.add(engine.createComponent(TransformComponent.class));
-        entity.add(engine.createComponent(MovementComponent.class));
-        entity.add(engine.createComponent(CircularBoundsComponent.class));
-        entity.add(engine.createComponent(DamageComponent.class));
-        entity.add(drawableComponentFactory.getProjectile());
-        CollisionComponent collisionComponent = engine.createComponent(CollisionComponent.class);
-        collisionComponent.collisionHandler = bulletCollisionHandler;
-        collisionComponent.ignoredEntities = OPPONENT_BULLET_COLLISION_IGNORE;
         entity.add(collisionComponent);
         return entity;
     }

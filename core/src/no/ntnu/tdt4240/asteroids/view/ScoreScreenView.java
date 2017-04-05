@@ -55,20 +55,20 @@ public class ScoreScreenView extends Stage implements ScoreScreenController.ISco
 
         List<String> scores = controller.getScores();
         table.row();
-        Label winner = new Label("The winner is: " + scores.get(0), defaultLabelStyle);
-        winner.setFontScale(8);
+        Label winner = new Label("Last penguin standing: " + scores.get(0).split(" ")[0], defaultLabelStyle);
+        winner.setFontScale(5);
         table.add(winner).pad(30);
 
-        for(int i = 1; i < scores.size(); i++){
+        for(int i = 0; i < scores.size(); i++){
             table.row();
-            Label l = new Label(String.valueOf(i) + ". Player: " + scores.get(i), defaultLabelStyle);
-            l.setFontScale(5);
+            Label l = new Label(String.valueOf(i+1) + ". Penguin: " + scores.get(i), defaultLabelStyle);
+            l.setFontScale(3);
             table.add(l).pad(30);
         }
 
         table.row();
         table.add(menuButton).pad(30);
-        menuButton.getLabel().setFontScale(5);
+        menuButton.getLabel().setFontScale(4);
         menuButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {

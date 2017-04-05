@@ -10,14 +10,13 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.actions.DelayAction;
-import com.badlogic.gdx.utils.Timer;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import no.ntnu.tdt4240.asteroids.Asteroids;
-import no.ntnu.tdt4240.asteroids.entity.component.CollisionComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.DrawableComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.PlayerClass;
 import no.ntnu.tdt4240.asteroids.entity.system.AnimationSystem;
@@ -37,7 +36,6 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
     @SuppressWarnings("unused")
     private static final String TAG = MultiplayerGame.class.getSimpleName();
     private static final boolean DEBUG = false;
-    private static final long SCORE_SCREEN_DURATION = 10000;
     private final Asteroids game;
     private final PooledEngine engine;
     private SinglePlayerGame.IGameView view;
@@ -122,7 +120,7 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
     public void handle(World model, int event) {
         switch (event) {
             case World.EVENT_SCORE: {
-                onUpdateScore();
+                onUpdateScore(model);
                 break;
             }
             case World.EVENT_LEVEL_COMPLETE: {
@@ -140,14 +138,30 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
         world.stop();
         game.setScreen(new ScoreScreenController(game, parent, getPlayersAndScores()));
     }
+
     private List<String> getPlayersAndScores(){
         ImmutableArray<Entity> entities = engine.getEntitiesFor(Family.all(PlayerClass.class).get());
         List<String> playersAndScores = new ArrayList<>();
         for (Entity e: entities){
-            // Is it possible to have the score of each player be within that component?
-            playersAndScores.add(e.getComponent(PlayerClass.class).id);
+            PlayerClass playerComponent = e.getComponent(PlayerClass.class);
+            playersAndScores.add(playerComponent.id + " " + String.valueOf(playerComponent.getScore()));
         }
-        // SORT ON SCORE WHEN POSSIBLE, then return
+        Collections.sort(playersAndScores, new Comparator<String>() {
+            @Override
+            public int compare(String s, String t1) {
+                int sScore, tScore;
+                sScore = Integer.parseInt(s.split(" ")[1]);
+                tScore = Integer.parseInt(t1.split(" ")[1]);
+                // Opposite to get descending
+                if (sScore == tScore){
+                    return 0;
+                } else if (sScore > tScore){
+                    return -1;
+                } else {
+                    return 1;
+                }
+            }
+        });
         return playersAndScores;
     }
 
@@ -160,7 +174,8 @@ public class MultiplayerGame extends ScreenAdapter implements World.IGameListene
     }
 
 
-    private void onUpdateScore() {
+    private void onUpdateScore(World model) {
+        //model.getPlayer().getComponent(PlayerClass.class).incrementScore();
         view.updateScore(world.getScore());
     }
 

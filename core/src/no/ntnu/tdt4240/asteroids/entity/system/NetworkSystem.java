@@ -109,7 +109,7 @@ public class NetworkSystem extends IteratingSystem implements EntityListener {
 
 
     private void bullet(String playerId, ByteBuffer wrap) {
-        Entity entity = entityFactory.createOpponentBullet(playerId);
+        Entity entity = entityFactory.createBullet(playerId);
         TransformComponent transform = transformMapper.get(entity);
         MovementComponent movement = movementMapper.get(entity);
         transform.position.x = wrap.getFloat();
