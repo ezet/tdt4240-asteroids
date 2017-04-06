@@ -8,6 +8,7 @@ import no.ntnu.tdt4240.asteroids.entity.component.EffectComponent;
 import no.ntnu.tdt4240.asteroids.entity.component.ShootComponent;
 import no.ntnu.tdt4240.asteroids.game.shothandler.IShotHandler;
 import no.ntnu.tdt4240.asteroids.game.shothandler.MultiShotHandler;
+import no.ntnu.tdt4240.asteroids.game.shothandler.StandardShotHandler;
 
 import static no.ntnu.tdt4240.asteroids.entity.util.ComponentMappers.shootMapper;
 
@@ -15,7 +16,6 @@ public class MultishotEffect extends BaseEffect {
 
     public static final int DEFAULT_DURATION = 10;
 
-    private IShotHandler oldHandler;
     private ShootComponent shootComponent;
 
     @Override
@@ -31,12 +31,11 @@ public class MultishotEffect extends BaseEffect {
     @Override
     protected void applyEffect(PooledEngine engine, Entity entity, EffectComponent effectComponent) {
         shootComponent = shootMapper.get(entity);
-        oldHandler = shootComponent.handler;
         shootComponent.handler = new MultiShotHandler(800, 3, 5);
     }
 
     @Override
     protected void removeEffect(PooledEngine engine, Entity entity, EffectComponent effectComponent) {
-        shootComponent.handler = oldHandler;
+        shootComponent.handler = new StandardShotHandler();
     }
 }
