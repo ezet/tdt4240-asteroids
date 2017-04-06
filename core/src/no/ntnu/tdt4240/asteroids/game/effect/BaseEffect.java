@@ -47,7 +47,6 @@ public abstract class BaseEffect implements IEffect {
             remainingDuration -= deltaTime;
         }
         if (remainingDuration < 0) {
-//            entity.remove(EffectComponent.class);
             component.removeEffect(this);
             removeEffect(engine, entity, component);
             restoreTexture(entity);
@@ -57,7 +56,7 @@ public abstract class BaseEffect implements IEffect {
     }
 
     private void setTexture(Entity entity) {
-        if (getEffectTexture() == null) return;
+        if (getEffectTexture() == null || getEffectTexture() == oldRegion) return;
         DrawableComponent drawableComponent = drawableMapper.get(entity);
         oldRegion = drawableComponent.texture;
         drawableComponent.texture = getEffectTexture();

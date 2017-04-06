@@ -19,9 +19,9 @@ public class PowerupCollisionHandler implements CollisionSystem.ICollisionHandle
     public boolean onCollision(PooledEngine engine, Entity source, Entity target) {
         if (playerMapper.has(target)) {
             PowerupClass powerup = powerupMapper.get(source);
-            EffectComponent effectComponent = engine.createComponent(EffectComponent.class);
-            effectComponent.addEffect(powerup.effect);
-            target.add(effectComponent);
+            if (target.getComponent(EffectComponent.class) == null) target.add(engine.createComponent(EffectComponent.class));
+            target.getComponent(EffectComponent.class).addEffect(powerup.effect);
+
             AnimationComponent pickupAnimation = createAnimationComponent();
             target.add(pickupAnimation);
             engine.removeEntity(source);
