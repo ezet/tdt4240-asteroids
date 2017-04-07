@@ -17,6 +17,7 @@ public class SettingsController extends ScreenAdapter implements ISettingsContro
     private final Asteroids game;
     private final SettingsView view;
     private Screen parent;
+    private int soundVolume = 100;
 
     public SettingsController(final Asteroids game, final Screen parent){
         this.parent = parent;
@@ -54,6 +55,21 @@ public class SettingsController extends ScreenAdapter implements ISettingsContro
         if (index == characters.size-1) return;
         ServiceLocator.getAppComponent().getSettings().setPlayerAppearance(characters.get(index+1));
         view.setCurrentCharacter(ServiceLocator.getAppComponent().getSettings().getPlayerAppearance());
+    }
+
+    @Override
+    public void toggleMute() {
+        soundVolume = (soundVolume == 100) ? 0: 100;
+    }
+
+    @Override
+    public void increaseVolume() {
+        if (soundVolume < 100) soundVolume += 10;
+    }
+
+    @Override
+    public void decreaseVolume() {
+        if (soundVolume > 0) soundVolume -= 10;
     }
 
     @Override
